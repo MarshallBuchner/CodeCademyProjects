@@ -1,22 +1,16 @@
 type NicotineCurveChartProps = {
   className?: string;
   compact?: boolean;
+  /** Weekly nicotine index as % of baseline (100 = start, lower = less). */
+  points?: number[];
 };
 
-const POINTS = [
-  { x: 0, y: 0.95 },
-  { x: 1, y: 0.88 },
-  { x: 2, y: 0.82 },
-  { x: 3, y: 0.72 },
-  { x: 4, y: 0.65 },
-  { x: 5, y: 0.55 },
-  { x: 6, y: 0.48 },
-  { x: 7, y: 0.38 },
-];
+const DEFAULT_POINTS = [100, 88, 82, 72, 65, 55, 48, 38];
 
 export function NicotineCurveChart({
   className = "",
   compact = false,
+  points = DEFAULT_POINTS,
 }: NicotineCurveChartProps) {
   const width = compact ? 280 : 320;
   const height = compact ? 100 : 140;
@@ -24,9 +18,10 @@ export function NicotineCurveChart({
   const chartW = width - padding.left - padding.right;
   const chartH = height - padding.top - padding.bottom;
 
-  const coords = POINTS.map((p, i) => ({
-    x: padding.left + (i / (POINTS.length - 1)) * chartW,
-    y: padding.top + p.y * chartH,
+  const normalized = points.map((p) => p / 100);
+  const coords = normalized.map((y, i) => ({
+    x: padding.left + (i / Math.max(normalized.length - 1, 1)) * chartW,
+    y: padding.top + y * chartH,
   }));
 
   const linePath = coords
@@ -34,20 +29,21 @@ export function NicotineCurveChart({
     .join(" ");
 
   const areaPath = `${linePath} L ${coords[coords.length - 1].x} ${padding.top + chartH} L ${coords[0].x} ${padding.top + chartH} Z`;
+  const gradientId = `curveGradient-${compact ? "c" : "f"}`;
 
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
       className={`w-full ${className}`}
-      aria-label="Nicotine reduction curve over 8 weeks"
+      aria-label="Nicotine reduction curve"
     >
       <defs>
-        <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#5ee9b5" stopOpacity="0.35" />
           <stop offset="100%" stopColor="#5ee9b5" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d={areaPath} fill="url(#curveGradient)" />
+      <path d={areaPath} fill={`url(#${gradientId})`} />
       <path
         d={linePath}
         fill="none"

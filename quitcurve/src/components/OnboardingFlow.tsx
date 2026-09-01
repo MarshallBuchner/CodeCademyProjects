@@ -1,17 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-type Device = "disposable" | "pod" | "refillable" | "pouches";
-type Frequency = "occasionally" | "regularly" | "constantly";
-type Pace = "4-week" | "8-week" | "12-week";
+import { useQuitCurve } from "@/context/QuitCurveProvider";
+import type {
+  Device,
+  Frequency,
+  NicotineStrength,
+  Pace,
+  UserPlan,
+} from "@/lib/types";
+import { getPaceLabel } from "@/lib/curve";
 
 type OnboardingFlowProps = {
   open: boolean;
   onClose: () => void;
 };
+
+const TOTAL_STEPS = 5;
 
 const DEVICE_OPTIONS: { value: Device; label: string }[] = [
   { value: "disposable", label: "Disposable vape" },
@@ -30,6 +36,15 @@ const FREQUENCY_OPTIONS: {
   { value: "constantly", label: "Constantly", description: "Usually within reach" },
 ];
 
+const NICOTINE_OPTIONS: { value: NicotineStrength; label: string }[] = [
+  { value: "5%", label: "5% / 50mg (high)" },
+  { value: "3%", label: "3% / 30mg (medium)" },
+  { value: "0mg", label: "0mg (habit only)" },
+  { value: "6mg-pouch", label: "6mg pouches" },
+  { value: "12mg-pouch", label: "12mg+ pouches" },
+  { value: "unknown", label: "Not sure" },
+];
+
 const PACE_OPTIONS: {
   value: Pace;
   label: string;
@@ -46,19 +61,19 @@ const PACE_OPTIONS: {
   { value: "12-week", label: "Gentle curve", description: "A gradual 12-week reduction" },
 ];
 
-const PACE_LABELS: Record<Pace, string> = {
-  "4-week": "4-week",
-  "8-week": "8-week",
-  "12-week": "12-week",
-};
-
 export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
   const router = useRouter();
+  const { setUserPlan, createAccount } = useQuitCurve();
   const [step, setStep] = useState(1);
   const [device, setDevice] = useState<Device | null>(null);
   const [frequency, setFrequency] = useState<Frequency | null>(null);
+  const [nicotineStrength, setNicotineStrength] =
+    useState<NicotineStrength | null>(null);
+  const [weeklySpend, setWeeklySpend] = useState(35);
   const [pace, setPace] = useState<Pace>("8-week");
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
 
   if (!open) return null;
 
@@ -66,8 +81,12 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
     setStep(1);
     setDevice(null);
     setFrequency(null);
+    setNicotineStrength(null);
+    setWeeklySpend(35);
     setPace("8-week");
-    setShowSuccess(false);
+    setShowAccount(false);
+    setName("");
+    setEmail("");
   };
 
   const handleClose = () => {
@@ -75,18 +94,27 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
     onClose();
   };
 
-  const handleViewPrototype = () => {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem(
-        "quitcurve-plan",
-        JSON.stringify({ device, frequency, pace }),
-      );
+  const buildPlan = (): UserPlan => ({
+    device: device!,
+    frequency: frequency!,
+    nicotineStrength: nicotineStrength!,
+    weeklySpend,
+    pace,
+    startDate: new Date().toISOString(),
+    slipCount: 0,
+  });
+
+  const finishOnboarding = (withAccount: boolean) => {
+    const plan = buildPlan();
+    setUserPlan(plan);
+    if (withAccount && name && email) {
+      createAccount(email, name);
     }
     handleClose();
     router.push("/dashboard");
   };
 
-  if (showSuccess) {
+  if (showAccount) {
     return (
       <ModalOverlay onClose={handleClose}>
         <div className="text-center">
@@ -97,18 +125,44 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
             Your starting curve is ready
           </p>
           <h2 className="mt-3 text-2xl font-bold">
-            A {PACE_LABELS[pace]} plan built around you.
+            A {getPaceLabel(pace).replace(" steady plan", "").replace(" gentle plan", "")} plan built around you.
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-muted">
-            Tomorrow we&apos;ll connect account creation, detailed nicotine
-            inputs, daily check-ins, and your working dashboard.
+            Create an account to save your progress across devices, or continue
+            as a guest for now.
           </p>
+
+          <div className="mt-6 space-y-3 text-left">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your first name"
+              className="w-full rounded-xl border border-white/10 bg-surface px-4 py-3 text-sm outline-none focus:border-accent/50"
+            />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email address"
+              className="w-full rounded-xl border border-white/10 bg-surface px-4 py-3 text-sm outline-none focus:border-accent/50"
+            />
+          </div>
+
           <button
             type="button"
-            onClick={handleViewPrototype}
-            className="mt-8 w-full rounded-full bg-accent py-4 text-sm font-semibold text-background transition hover:bg-accent-dim"
+            onClick={() => finishOnboarding(true)}
+            disabled={!name.trim() || !email.trim()}
+            className="mt-4 w-full rounded-full bg-accent py-4 text-sm font-semibold text-background disabled:opacity-40"
           >
-            View prototype
+            Create account & view dashboard
+          </button>
+          <button
+            type="button"
+            onClick={() => finishOnboarding(false)}
+            className="mt-3 w-full py-3 text-sm text-muted transition hover:text-foreground"
+          >
+            Continue as guest
           </button>
         </div>
       </ModalOverlay>
@@ -180,6 +234,62 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
       {step === 3 && (
         <StepContent
           step={3}
+          title="What's your nicotine level?"
+          subtitle="This helps calibrate your reduction curve."
+        >
+          <div className="space-y-3">
+            {NICOTINE_OPTIONS.map((opt) => (
+              <OptionButton
+                key={opt.value}
+                label={opt.label}
+                selected={nicotineStrength === opt.value}
+                onClick={() => setNicotineStrength(opt.value)}
+              />
+            ))}
+          </div>
+          <StepNav
+            onBack={() => setStep(2)}
+            onCancel={handleClose}
+            onContinue={() => nicotineStrength && setStep(4)}
+            continueDisabled={!nicotineStrength}
+          />
+        </StepContent>
+      )}
+
+      {step === 4 && (
+        <StepContent
+          step={4}
+          title="About how much do you spend per week?"
+          subtitle="We'll track money saved as you cut back."
+        >
+          <div className="rounded-2xl border border-white/10 bg-surface p-6 text-center">
+            <p className="text-4xl font-bold text-accent">${weeklySpend}</p>
+            <p className="mt-1 text-sm text-muted">per week</p>
+            <input
+              type="range"
+              min={5}
+              max={150}
+              step={5}
+              value={weeklySpend}
+              onChange={(e) => setWeeklySpend(Number(e.target.value))}
+              className="mt-6 w-full accent-accent"
+            />
+            <div className="mt-2 flex justify-between text-xs text-muted">
+              <span>$5</span>
+              <span>$150</span>
+            </div>
+          </div>
+          <StepNav
+            onBack={() => setStep(3)}
+            onCancel={handleClose}
+            onContinue={() => setStep(5)}
+          />
+        </StepContent>
+      )}
+
+      {step === 5 && (
+        <StepContent
+          step={5}
           title="What pace feels realistic?"
           subtitle="You can change this later. QuitCurve will adapt with you."
         >
@@ -199,9 +309,9 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
             ))}
           </div>
           <StepNav
-            onBack={() => setStep(2)}
+            onBack={() => setStep(4)}
             onCancel={handleClose}
-            onContinue={() => setShowSuccess(true)}
+            onContinue={() => setShowAccount(true)}
           />
         </StepContent>
       )}
@@ -245,7 +355,7 @@ function StepContent({
   return (
     <div>
       <p className="text-xs font-medium uppercase tracking-widest text-accent">
-        Step {step} of 3
+        Step {step} of {TOTAL_STEPS}
       </p>
       <h2 className="mt-3 text-2xl font-bold leading-tight">{title}</h2>
       <p className="mt-2 text-sm text-muted">{subtitle}</p>
