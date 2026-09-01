@@ -364,6 +364,11 @@ function Footer() {
           QuitCurve supports behaviour change and does not replace professional
           medical advice.
         </p>
+        <div className="mt-4 flex flex-wrap gap-4 text-xs text-muted">
+          <a href="/privacy" className="hover:text-accent">
+            Privacy Policy
+          </a>
+        </div>
         <p className="mt-6 text-xs text-white/30">© 2026 QuitCurve</p>
       </div>
     </footer>

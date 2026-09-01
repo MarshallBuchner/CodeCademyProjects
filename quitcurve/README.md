@@ -31,9 +31,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Deploy
 
-1. Create `MarshallBuchner/quitcurve` on GitHub
-2. Deploy to Vercel under **POWRHockey** team
-3. Add domains: `quitcurve.app`, `quitcurve.ca`
-4. Add Supabase env vars in Vercel
+**→ Start here: [DEPLOY.md](./DEPLOY.md)** — one-shot checklist to go live on Vercel.
 
-Full step-by-step: **[SETUP.md](./SETUP.md)**
+1. Create `MarshallBuchner/quitcurve` on GitHub
+2. Run `./scripts/push-to-github.sh` (or push manually)
+3. Deploy to Vercel under **POWRHockey** team
+4. Add domains: `quitcurve.app`, `quitcurve.ca`
+5. Add Supabase env vars (optional, for cloud sync)
+
+Full details: **[SETUP.md](./SETUP.md)** (Supabase + DNS)
