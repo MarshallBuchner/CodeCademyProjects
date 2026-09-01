@@ -125,3 +125,11 @@ export function saveCheckIn(
 export function getManagedCravingCount(): number {
   return getCravings().filter((c) => c.managed).length;
 }
+
+export function writeCravings(cravings: CravingLog[]): void {
+  write(KEYS.cravings, cravings);
+}
+
+export function writeCheckIns(checkIns: DailyCheckIn[]): void {
+  write(KEYS.checkins, checkIns);
+}

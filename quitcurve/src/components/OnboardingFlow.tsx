@@ -74,6 +74,8 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
   const [showAccount, setShowAccount] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [accountError, setAccountError] = useState("");
 
   if (!open) return null;
 
@@ -87,6 +89,8 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
     setShowAccount(false);
     setName("");
     setEmail("");
+    setMagicLinkSent(false);
+    setAccountError("");
   };
 
   const handleClose = () => {
@@ -104,17 +108,47 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
     slipCount: 0,
   });
 
-  const finishOnboarding = (withAccount: boolean) => {
+  const finishOnboarding = async (withAccount: boolean) => {
     const plan = buildPlan();
-    setUserPlan(plan);
-    if (withAccount && name && email) {
-      createAccount(email, name);
+    await setUserPlan(plan);
+
+    if (!withAccount) {
+      handleClose();
+      router.push("/dashboard");
     }
-    handleClose();
-    router.push("/dashboard");
   };
 
   if (showAccount) {
+    if (magicLinkSent) {
+      return (
+        <ModalOverlay onClose={handleClose}>
+          <div className="text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-surface">
+              <span className="text-2xl text-accent">✉</span>
+            </div>
+            <p className="text-xs font-medium uppercase tracking-widest text-accent">
+              Check your email
+            </p>
+            <h2 className="mt-3 text-2xl font-bold">Magic link sent</h2>
+            <p className="mt-4 text-sm leading-relaxed text-muted">
+              We sent a sign-in link to <strong>{email}</strong>. Tap it on any
+              device to sync your QuitCurve progress.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                handleClose();
+                router.push("/dashboard");
+              }}
+              className="mt-8 w-full rounded-full bg-accent py-4 text-sm font-semibold text-background"
+            >
+              Continue to dashboard
+            </button>
+          </div>
+        </ModalOverlay>
+      );
+    }
+
     return (
       <ModalOverlay onClose={handleClose}>
         <div className="text-center">
@@ -151,12 +185,30 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
 
           <button
             type="button"
-            onClick={() => finishOnboarding(true)}
+            onClick={async () => {
+              setAccountError("");
+              const plan = buildPlan();
+              await setUserPlan(plan);
+              const result = await createAccount(email, name);
+              if (result.error) {
+                setAccountError(result.error);
+                return;
+              }
+              if (result.mode === "magic_link") {
+                setMagicLinkSent(true);
+                return;
+              }
+              handleClose();
+              router.push("/dashboard");
+            }}
             disabled={!name.trim() || !email.trim()}
             className="mt-4 w-full rounded-full bg-accent py-4 text-sm font-semibold text-background disabled:opacity-40"
           >
             Create account & view dashboard
           </button>
+          {accountError && (
+            <p className="mt-2 text-sm text-red-400">{accountError}</p>
+          )}
           <button
             type="button"
             onClick={() => finishOnboarding(false)}

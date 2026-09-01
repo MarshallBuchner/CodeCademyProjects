@@ -14,7 +14,7 @@ import { getTimeGreeting } from "@/lib/greeting";
 
 export function Dashboard() {
   const router = useRouter();
-  const { user, plan, stats, todayCheckIn, logout } = useQuitCurve();
+  const { user, plan, stats, todayCheckIn, logout, cloudSynced } = useQuitCurve();
   const [cravingOpen, setCravingOpen] = useState(false);
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
@@ -173,7 +173,12 @@ export function Dashboard() {
         </button>
 
         <p className="mt-8 text-center text-xs text-white/30">
-          Day {stats.currentDay} • {user ? `Signed in as ${user.name}` : "Guest mode"}
+          Day {stats.currentDay} •{" "}
+          {user
+            ? cloudSynced
+              ? `Synced as ${user.name}`
+              : `Signed in as ${user.name}`
+            : "Guest mode"}
         </p>
       </main>
 
