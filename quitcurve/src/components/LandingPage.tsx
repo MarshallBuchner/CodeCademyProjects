@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Logo } from "./Logo";
 import { NicotineCurveChart } from "./NicotineCurveChart";
@@ -29,6 +30,19 @@ export function Navbar({ onStartPlan }: { onStartPlan: () => void }) {
               {link.label}
             </a>
           ))}
+          <Link
+            href="/login"
+            className="text-sm text-muted transition hover:text-foreground"
+          >
+            Sign in
+          </Link>
+          <button
+            type="button"
+            onClick={onStartPlan}
+            className="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-background transition hover:bg-accent-dim"
+          >
+            Build my quit plan
+          </button>
         </nav>
         <button
           type="button"
@@ -54,6 +68,13 @@ export function Navbar({ onStartPlan }: { onStartPlan: () => void }) {
               {link.label}
             </a>
           ))}
+          <Link
+            href="/login"
+            onClick={() => setOpen(false)}
+            className="mt-3 block py-2 text-sm text-muted"
+          >
+            Sign in
+          </Link>
           <button
             type="button"
             onClick={() => {
@@ -365,6 +386,9 @@ function Footer() {
           medical advice.
         </p>
         <div className="mt-4 flex flex-wrap gap-4 text-xs text-muted">
+          <Link href="/login" className="hover:text-accent">
+            Sign in
+          </Link>
           <a href="/privacy" className="hover:text-accent">
             Privacy Policy
           </a>
