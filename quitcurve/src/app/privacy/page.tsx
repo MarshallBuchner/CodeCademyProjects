@@ -22,7 +22,7 @@ export default function PrivacyPage() {
 
       <main className="mx-auto max-w-2xl px-5 py-10 prose prose-invert prose-sm">
         <h1 className="text-3xl font-bold text-foreground">Privacy Policy</h1>
-        <p className="text-muted">Last updated: September 1, 2026</p>
+        <p className="text-muted">Last updated: September 3, 2026</p>
 
         <section className="mt-8 space-y-4 text-sm leading-relaxed text-muted">
           <h2 className="text-lg font-semibold text-foreground">Overview</h2>
@@ -52,6 +52,11 @@ export default function PrivacyPage() {
               <strong className="text-foreground">Guest mode:</strong> if you skip
               account creation, data is stored only in your browser (localStorage)
             </li>
+            <li>
+              <strong className="text-foreground">Reminders (optional):</strong>{" "}
+              if you opt in, we store your reminder preferences, time zone, and
+              (for SMS) phone number, plus consent timestamps
+            </li>
           </ul>
 
           <h2 className="text-lg font-semibold text-foreground">
@@ -59,8 +64,9 @@ export default function PrivacyPage() {
           </h2>
           <p>
             We use your data solely to provide and improve the QuitCurve service:
-            calculating your personalized reduction curve, tracking progress, and
-            syncing across devices when you sign in. We do not sell your personal
+            calculating your personalized reduction curve, tracking progress,
+            syncing across devices when you sign in, and sending optional daily
+            check-in reminders you have consented to. We do not sell your personal
             data to third parties.
           </p>
 
@@ -84,6 +90,15 @@ export default function PrivacyPage() {
             <li>
               <strong className="text-foreground">Vercel</strong> — app hosting
               (see vercel.com/legal/privacy-policy)
+            </li>
+            <li>
+              <strong className="text-foreground">Resend</strong> — transactional
+              email delivery for magic links and optional check-in reminders
+              (see resend.com/legal/privacy-policy)
+            </li>
+            <li>
+              <strong className="text-foreground">Twilio</strong> — optional SMS
+              reminders if you enable them (see twilio.com/legal/privacy)
             </li>
           </ul>
 

@@ -12,6 +12,7 @@ Personalized vape quit coach — adaptive step-down plans that bend, not break.
 - **Dashboard** — live stats: nicotine reduction %, money saved, cravings managed
 - **Craving logging** — intensity, trigger, managed/unmanaged (adapts curve on slips)
 - **Daily check-ins** — mood + plan adherence tracking
+- **Check-in reminders** — optional daily email (Resend) + SMS (Twilio), timezone-aware, skipped if already checked in
 
 Built with Next.js 16, React 19, Tailwind CSS 4, Supabase.
 

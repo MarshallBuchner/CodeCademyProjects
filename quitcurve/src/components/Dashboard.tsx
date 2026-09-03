@@ -71,6 +71,15 @@ export function Dashboard() {
             </button>
             {menuOpen && (
               <div className="absolute right-0 top-11 z-20 w-48 rounded-xl border border-white/10 bg-card py-2 shadow-xl">
+                {user && (
+                  <Link
+                    href="/reminders"
+                    className="block px-4 py-2 text-sm text-muted hover:text-foreground"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Reminders
+                  </Link>
+                )}
                 <Link
                   href="/login"
                   className="block px-4 py-2 text-sm text-muted hover:text-foreground"
