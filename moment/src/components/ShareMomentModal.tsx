@@ -103,7 +103,8 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
             <h2 className="font-display mt-1 text-2xl tracking-wide">Send to someone</h2>
             <p className="mt-1 text-sm text-muted">
               Only the person with this link (and optional PIN) can unlock it — and only at{" "}
-              <span className="text-foreground/90">{moment.placeName}</span>.
+              <span className="text-foreground/90">{moment.placeName}</span>
+              {moment.annualTradition ? " when the yearly tradition opens" : ""}.
             </p>
           </div>
           <button

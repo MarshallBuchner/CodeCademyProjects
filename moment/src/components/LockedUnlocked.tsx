@@ -54,7 +54,9 @@ export function LockedView() {
         <p className="mt-2 text-sm text-muted">Keep going…</p>
         {activeMoment.timeLocked && activeMoment.unlockAt && (
           <p className="mt-2 text-xs text-muted">
-            Also locked until {formatShortDate(activeMoment.unlockAt)}
+            {activeMoment.annualTradition
+              ? `Yearly tradition — sealed until ${formatShortDate(activeMoment.unlockAt)}`
+              : `Also locked until ${formatShortDate(activeMoment.unlockAt)}`}
           </p>
         )}
         {locationError && (

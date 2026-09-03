@@ -27,7 +27,13 @@ Interactive prototype matching your Drop → Return → Unlock flow:
 - **Simulate arrival** button for desktop / demo testing
 - Dark + amber design system from the mockups
 
-## Private share links
+## Make it last forever
+
+Marketing hook baked into welcome + drop flow:
+
+> Every year when you come back to that place with your family, you open the Moment you left for yourselves the year before. Literally making the moment last forever.
+
+Tap **Open again next year** when leaving a Moment to seal it for ~12 months at that location.
 
 Drop a Moment → **Send to someone**:
 

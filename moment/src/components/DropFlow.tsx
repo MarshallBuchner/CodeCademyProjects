@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { MapCanvas } from "@/components/MapCanvas";
 import { useMoment } from "@/context/MomentProvider";
 import { offsetCoords } from "@/lib/geo";
+import { formatShortDate } from "@/lib/format";
 import { compressImageFile, readFileAsDataUrl } from "@/lib/media";
+import { oneYearFromNowIso, toDatetimeLocalValue } from "@/lib/time";
 import type { MediaKind, MomentMedia } from "@/lib/types";
 
 export function DropPlace() {
@@ -396,6 +398,23 @@ export function DropRecord() {
 export function DropLeave() {
   const { draft, setDraft, setView, dropMoment } = useMoment();
 
+  function enableAnnualTradition() {
+    setDraft({
+      annualTradition: true,
+      locationLocked: true,
+      timeLocked: true,
+      unlockAt: oneYearFromNowIso(),
+    });
+  }
+
+  function clearAnnualTradition() {
+    setDraft({
+      annualTradition: false,
+      timeLocked: false,
+      unlockAt: undefined,
+    });
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-8 pt-6">
       <button
@@ -424,7 +443,32 @@ export function DropLeave() {
         </div>
       </div>
 
-      <label className="mt-4 flex items-center justify-between rounded-[22px] border border-white/8 bg-card px-4 py-4">
+      <button
+        type="button"
+        onClick={() =>
+          draft.annualTradition ? clearAnnualTradition() : enableAnnualTradition()
+        }
+        className={`mt-4 w-full rounded-[22px] border px-4 py-4 text-left transition ${
+          draft.annualTradition
+            ? "border-accent/50 bg-accent/10"
+            : "border-white/8 bg-card"
+        }`}
+      >
+        <span className="block text-sm font-medium text-foreground">
+          Open again next year
+        </span>
+        <span className="mt-1 block text-xs leading-relaxed text-muted">
+          Family tradition — come back to this place next year and open what you
+          left. Making the moment last forever.
+        </span>
+        {draft.annualTradition && draft.unlockAt && (
+          <span className="mt-2 block text-xs text-accent">
+            Sealed until {formatShortDate(draft.unlockAt)} · at this location
+          </span>
+        )}
+      </button>
+
+      <label className="mt-3 flex items-center justify-between rounded-[22px] border border-white/8 bg-card px-4 py-4">
         <span>
           <span className="block text-sm font-medium">Only at this location</span>
           <span className="text-xs text-muted">Unlocks when you arrive</span>
@@ -446,7 +490,15 @@ export function DropLeave() {
           type="checkbox"
           className="toggle"
           checked={draft.timeLocked}
-          onChange={(e) => setDraft({ timeLocked: e.target.checked })}
+          onChange={(e) =>
+            setDraft({
+              timeLocked: e.target.checked,
+              annualTradition: e.target.checked ? draft.annualTradition : false,
+              unlockAt: e.target.checked
+                ? draft.unlockAt ?? oneYearFromNowIso()
+                : undefined,
+            })
+          }
         />
       </label>
 
@@ -454,16 +506,13 @@ export function DropLeave() {
         <input
           type="datetime-local"
           className="field mt-3"
-          value={
-            draft.unlockAt
-              ? draft.unlockAt.slice(0, 16)
-              : ""
-          }
+          value={toDatetimeLocalValue(draft.unlockAt)}
           onChange={(e) =>
             setDraft({
               unlockAt: e.target.value
                 ? new Date(e.target.value).toISOString()
                 : undefined,
+              annualTradition: false,
             })
           }
         />
@@ -474,7 +523,7 @@ export function DropLeave() {
         className="btn-primary mt-auto w-full"
         onClick={() => dropMoment()}
       >
-        Drop Moment
+        {draft.annualTradition ? "Drop yearly Moment" : "Drop Moment"}
       </button>
       <p className="mt-3 text-center text-xs text-muted">Only opens at this location.</p>
     </main>

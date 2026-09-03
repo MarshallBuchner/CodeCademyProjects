@@ -24,6 +24,8 @@ export type MomentRecord = {
   locationLocked: boolean;
   timeLocked: boolean;
   unlockAt?: string; // ISO
+  /** Yearly family/return tradition — unlock next year at this place */
+  annualTradition?: boolean;
   createdAt: string;
   unlockedAt?: string;
   saved: boolean;
@@ -39,6 +41,7 @@ export type DraftMoment = {
   locationLocked: boolean;
   timeLocked: boolean;
   unlockAt?: string;
+  annualTradition?: boolean;
 };
 
 export type AppView =
@@ -64,4 +67,5 @@ export const emptyDraft = (): DraftMoment => ({
   locationLocked: true,
   timeLocked: false,
   unlockAt: undefined,
+  annualTradition: false,
 });

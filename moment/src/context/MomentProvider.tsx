@@ -164,6 +164,7 @@ export function MomentProvider({ children }: { children: ReactNode }) {
       locationLocked: draft.locationLocked,
       timeLocked: draft.timeLocked,
       unlockAt: draft.timeLocked ? draft.unlockAt : undefined,
+      annualTradition: draft.annualTradition || undefined,
       createdAt: new Date().toISOString(),
       saved: false,
     };

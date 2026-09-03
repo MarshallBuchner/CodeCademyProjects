@@ -3,7 +3,7 @@
 import { BottomNav } from "@/components/BottomNav";
 import { useMoment } from "@/context/MomentProvider";
 import { distanceMeters, formatDistance } from "@/lib/geo";
-import { relativeTime } from "@/lib/format";
+import { formatShortDate, relativeTime } from "@/lib/format";
 
 export function Home() {
   const { moments, startDrop, openMoment, userCoords, seedDemo } = useMoment();
@@ -32,7 +32,8 @@ export function Home() {
           <div className="flex flex-1 flex-col items-center justify-center rounded-[28px] border border-dashed border-white/12 bg-card/40 px-6 py-16 text-center">
             <p className="font-display text-xl tracking-wide">Nothing left yet</p>
             <p className="mt-2 max-w-xs text-sm text-muted">
-              Drop your first Moment at a place that matters — a picture, video, or written message.
+              Drop a picture, video, or message at a place that matters — then come
+              back next year and open it together.
             </p>
             <button type="button" className="btn-primary mt-8 w-full" onClick={startDrop}>
               + Drop a Moment
@@ -112,11 +113,15 @@ export function Home() {
                       <p className="truncate font-medium text-foreground">{m.title}</p>
                       <p className="mt-0.5 truncate text-sm text-muted">{m.placeName}</p>
                       <p className="mt-1 text-xs text-muted/80">
-                        {unlocked
-                          ? `Unlocked · ${relativeTime(m.unlockedAt!)}`
-                          : dist != null
-                            ? `${formatDistance(dist)} away`
-                            : "Location locked"}
+                        {m.annualTradition
+                          ? m.unlockedAt
+                            ? `Tradition opened · ${relativeTime(m.unlockedAt)}`
+                            : `Yearly tradition · opens ${m.unlockAt ? formatShortDate(m.unlockAt) : "next year"}`
+                          : unlocked
+                            ? `Unlocked · ${relativeTime(m.unlockedAt!)}`
+                            : dist != null
+                              ? `${formatDistance(dist)} away`
+                              : "Location locked"}
                       </p>
                     </div>
                     <span className="text-muted/60 group-hover:text-accent">›</span>

@@ -18,6 +18,7 @@ export type SharedCapsule = {
   locationLocked: boolean;
   timeLocked: boolean;
   unlockAt?: string;
+  annualTradition?: boolean;
   createdAt: string;
 };
 
@@ -128,6 +129,7 @@ export function createCapsuleFromMoment(input: {
     locationLocked: input.moment.locationLocked,
     timeLocked: input.moment.timeLocked,
     unlockAt: input.moment.unlockAt,
+    annualTradition: input.moment.annualTradition,
     createdAt: new Date().toISOString(),
   };
 }
@@ -144,6 +146,7 @@ export function capsuleToLocalMoment(capsule: SharedCapsule): MomentRecord {
     locationLocked: capsule.locationLocked,
     timeLocked: capsule.timeLocked,
     unlockAt: capsule.unlockAt,
+    annualTradition: capsule.annualTradition,
     createdAt: capsule.createdAt,
     saved: false,
   };
