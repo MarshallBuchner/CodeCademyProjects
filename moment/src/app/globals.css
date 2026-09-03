@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+:root {
+  --background: #050608;
+  --foreground: #f4f1ea;
+  --muted: #8b8790;
+  --accent: #ff8a2a;
+  --accent-hot: #ff6a00;
+  --accent-soft: #ffb067;
+  --card: #101218;
+  --surface: #161821;
+  --card-border: rgba(255, 255, 255, 0.08);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hot: var(--accent-hot);
+  --color-accent-soft: var(--accent-soft);
+  --color-card: var(--card);
+  --color-surface: var(--surface);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), system-ui, sans-serif;
+  min-height: 100dvh;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.city-glow {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 138, 42, 0.16), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255, 106, 0, 0.12), transparent 50%),
+    linear-gradient(180deg, #0a0b12 0%, #050608 55%, #050608 100%);
+}
+
+.city-glow::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 45%;
+  background:
+    linear-gradient(0deg, rgba(5, 6, 8, 0.85), transparent),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 18px,
+      rgba(255, 200, 120, 0.035) 18px,
+      rgba(255, 200, 120, 0.035) 19px
+    );
+  mask-image: linear-gradient(to top, black 20%, transparent);
+  pointer-events: none;
+}
+
+.map-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffb067 0%, #ff8a2a 45%, #ff6a00 100%);
+  color: #120a04;
+  font-weight: 600;
+  padding: 0.95rem 1.25rem;
+  box-shadow:
+    0 0 0 1px rgba(255, 180, 100, 0.25),
+    0 10px 30px rgba(255, 106, 0, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--foreground);
+  padding: 0.9rem 1.25rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.btn-ghost:hover {
+  border-color: rgba(255, 138, 42, 0.4);
+  background: rgba(255, 138, 42, 0.08);
+}
+
+.field {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(16, 18, 24, 0.9);
+  color: var(--foreground);
+  padding: 0.85rem 1rem;
+  outline: none;
+}
+
+.field:focus {
+  border-color: rgba(255, 138, 42, 0.55);
+  box-shadow: 0 0 0 3px rgba(255, 138, 42, 0.15);
+}
+
+.field::placeholder {
+  color: rgba(139, 135, 144, 0.85);
+}
+
+.toggle {
+  appearance: none;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: #2a2d38;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #c8c4cc;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.toggle:checked {
+  background: linear-gradient(135deg, #ffb067, #ff6a00);
+}
+
+.toggle:checked::after {
+  transform: translateX(18px);
+  background: #1a1008;
+}
+
+.glow-text {
+  text-shadow: 0 0 24px rgba(255, 138, 42, 0.45);
+}
+
+.animate-dash {
+  stroke-dashoffset: 0;
+  animation: dash-move 2.4s linear infinite;
+}
+
+@keyframes dash-move {
+  to {
+    stroke-dashoffset: -64;
+  }
+}
+
+.safe-bottom {
+  padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+}
