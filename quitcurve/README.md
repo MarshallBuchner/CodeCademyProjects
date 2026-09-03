@@ -12,7 +12,8 @@ Personalized vape quit coach — adaptive step-down plans that bend, not break.
 - **Dashboard** — live stats: nicotine reduction %, money saved, cravings managed
 - **Craving logging** — intensity, trigger, managed/unmanaged (adapts curve on slips)
 - **Daily check-ins** — mood + plan adherence tracking
-- **Check-in reminders** — optional daily email (Resend) + SMS (Twilio), timezone-aware, skipped if already checked in
+- **Check-in reminders** — optional daily email (Resend) + SMS (Twilio)
+- **Puff pacing** — daily budget, used/remaining, on-pace status, next wait window, one-tap log
 
 Built with Next.js 16, React 19, Tailwind CSS 4, Supabase.
 
@@ -29,7 +30,8 @@ Open [http://localhost:3000](http://localhost:3000).
 **Without Supabase:** works immediately in guest/local mode.
 
 **With Supabase:** see [SETUP.md](./SETUP.md) for full deploy + domain guide.  
-**Reminders:** see [REMINDERS.md](./REMINDERS.md) after cloud sync is live.
+**Reminders:** see [REMINDERS.md](./REMINDERS.md) after cloud sync is live.  
+**Puff pacing:** see [PACING.md](./PACING.md) — daily budget, used/remaining, one-tap log.
 
 ## Deploy
 

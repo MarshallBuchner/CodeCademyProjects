@@ -56,6 +56,12 @@ Daily email (Resend) + optional SMS (Twilio). Full guide: **[REMINDERS.md](./REM
 3. Redeploy (enables hourly cron at `/api/cron/reminders`)
 4. Users opt in at `/reminders`
 
+### Puff pacing (daily taper UI)
+
+1. Run `supabase/puff_logs.sql` in the SQL Editor (optional — local works without it)
+2. Dashboard shows today’s puff target, used/remaining, pacing window, and **Log a puff**
+3. Details: **[PACING.md](./PACING.md)**
+
 ---
 
 ## 2. Vercel deployment (POWRHockey team)
