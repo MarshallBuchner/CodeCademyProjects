@@ -41,14 +41,25 @@ export function LockedView() {
       >
         ← Your Moments
       </button>
-      <p className="text-xs tracking-[0.22em] text-accent uppercase">
-        {activeMoment.annualTradition ? "Annual Moment" : "Not there yet"}
-      </p>
-      <h1 className="font-display mt-1 text-3xl tracking-wide">
+
+      {activeMoment.annualTradition ? (
+        <span className="inline-flex self-start rounded-full border border-accent/45 bg-accent/15 px-3 py-1 text-[11px] tracking-[0.2em] text-accent uppercase">
+          Last year
+        </span>
+      ) : (
+        <p className="text-xs tracking-[0.22em] text-accent uppercase">Not there yet</p>
+      )}
+      <h1 className="font-display mt-2 text-3xl tracking-wide">
         {activeMoment.annualTradition
-          ? "Return here next year to unlock."
+          ? "Come back to open."
           : "This Moment opens when you arrive."}
       </h1>
+      <p className="mt-1 text-sm text-muted">
+        {activeMoment.title}
+        {activeMoment.createdAt
+          ? ` · ${formatShortDate(activeMoment.createdAt)}`
+          : ""}
+      </p>
 
       <JourneyMap
         user={userCoords}
@@ -61,7 +72,11 @@ export function LockedView() {
         <p className="font-display text-4xl tracking-wide text-accent glow-text">
           {distLabel} away
         </p>
-        <p className="mt-2 text-sm text-muted">Keep going…</p>
+        <p className="mt-2 text-sm text-muted">
+          {activeMoment.annualTradition
+            ? "Locked here. Come back to open."
+            : "Keep going…"}
+        </p>
         {activeMoment.timeLocked && activeMoment.unlockAt && (
           <p className="mt-2 text-xs text-muted">
             {activeMoment.annualTradition
@@ -159,8 +174,19 @@ export function UnlockedView() {
       >
         ← Your Moments
       </button>
-      <p className="text-xs tracking-[0.22em] text-accent uppercase">You&apos;ve arrived</p>
-      <h1 className="font-display mt-1 text-3xl tracking-wide">This Moment is for you.</h1>
+
+      {activeMoment.annualTradition ? (
+        <span className="inline-flex self-start rounded-full border border-accent/45 bg-accent/15 px-3 py-1 text-[11px] tracking-[0.2em] text-accent uppercase">
+          Today
+        </span>
+      ) : (
+        <p className="text-xs tracking-[0.22em] text-accent uppercase">You&apos;ve arrived</p>
+      )}
+      <h1 className="font-display mt-2 text-3xl tracking-wide">
+        {activeMoment.annualTradition
+          ? "Welcome back. This Moment is ready."
+          : "This Moment is for you."}
+      </h1>
 
       <div className="mx-auto mt-6 grid h-16 w-16 place-items-center rounded-full border border-accent/50 bg-accent/15 text-accent gift-glow">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
