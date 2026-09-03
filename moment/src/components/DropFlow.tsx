@@ -455,11 +455,11 @@ export function DropLeave() {
         }`}
       >
         <span className="block text-sm font-medium text-foreground">
-          Open again next year
+          Annual Moment
         </span>
         <span className="mt-1 block text-xs leading-relaxed text-muted">
-          Family tradition — come back to this place next year and open what you
-          left. Making the moment last forever.
+          Return here next year to unlock. Keep the tradition going — make the
+          moment last forever.
         </span>
         {draft.annualTradition && draft.unlockAt && (
           <span className="mt-2 block text-xs text-accent">
@@ -523,9 +523,13 @@ export function DropLeave() {
         className="btn-primary mt-auto w-full"
         onClick={() => dropMoment()}
       >
-        {draft.annualTradition ? "Drop yearly Moment" : "Drop Moment"}
+        {draft.annualTradition ? "Drop Annual Moment" : "Drop Moment"}
       </button>
-      <p className="mt-3 text-center text-xs text-muted">Only opens at this location.</p>
+      <p className="mt-3 text-center text-xs text-muted">
+        {draft.annualTradition
+          ? "Return here next year to unlock."
+          : "Only opens at this location."}
+      </p>
     </main>
   );
 }

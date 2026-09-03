@@ -25,6 +25,7 @@ import {
   type DraftMoment,
   type MomentRecord,
 } from "@/lib/types";
+import { oneYearFromNowIso } from "@/lib/time";
 
 type MomentContextValue = {
   ready: boolean;
@@ -50,6 +51,8 @@ type MomentContextValue = {
   seedDemo: () => Promise<void>;
   /** Demo: pretend you arrived at the active moment */
   simulateArrival: () => void;
+  /** After unlocking an Annual Moment — start next year's chapter at the same place */
+  continueTradition: (from: MomentRecord) => void;
   distanceToActive: number | null;
   canUnlockActive: boolean;
 };
@@ -302,6 +305,23 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     markUnlocked(activeMoment.id);
   }, [activeMoment, markUnlocked]);
 
+  const continueTradition = useCallback((from: MomentRecord) => {
+    setDraftState({
+      ...emptyDraft(),
+      title: "",
+      placeName: from.placeName,
+      placeSubtitle: from.placeSubtitle,
+      coords: from.coords,
+      locationLocked: true,
+      timeLocked: true,
+      annualTradition: true,
+      unlockAt: oneYearFromNowIso(),
+      note: "",
+      media: [],
+    });
+    setView("drop-record");
+  }, []);
+
   // Auto-unlock when walking into radius
   useEffect(() => {
     if (view !== "locked" || !activeMoment || !canUnlockActive) return;
@@ -331,6 +351,7 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     dismissWelcome,
     seedDemo,
     simulateArrival,
+    continueTradition,
     distanceToActive,
     canUnlockActive,
   };

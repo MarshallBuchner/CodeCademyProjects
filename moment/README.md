@@ -29,11 +29,15 @@ Interactive prototype matching your Drop → Return → Unlock flow:
 
 ## Make it last forever
 
-Marketing hook baked into welcome + drop flow:
+MOMENT is a **tradition generator**, not just location-locked messaging.
 
-> Every year when you come back to that place with your family, you open the Moment you left for yourselves the year before. Literally making the moment last forever.
+> Make the moment last forever.
 
-Tap **Open again next year** when leaving a Moment to seal it for ~12 months at that location.
+> Come back. Open the past. Leave something for the future.
+
+> Some places become part of your story. MOMENT helps you keep adding to it.
+
+**Annual Moments:** drop with “Return here next year to unlock.” After opening → **Create next year’s MOMENT?** — the tradition loops.
 
 Drop a Moment → **Send to someone**:
 

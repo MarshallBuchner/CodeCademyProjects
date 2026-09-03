@@ -17,6 +17,9 @@ export function Welcome() {
         <p className="mt-5 max-w-sm text-balance text-lg leading-relaxed text-foreground/85">
           Leave something behind. Unlock it when you return.
         </p>
+        <p className="mt-3 font-display text-lg tracking-wide text-accent/90">
+          Make the moment last forever.
+        </p>
 
         <div className="mt-12 flex w-full max-w-sm flex-col gap-3">
           <button type="button" className="btn-primary" onClick={dismissWelcome}>
@@ -35,66 +38,69 @@ export function Welcome() {
           href="#forever"
           className="mt-14 text-[11px] tracking-[0.28em] text-muted uppercase transition hover:text-accent"
         >
-          Why it lasts ↓
+          Traditions ↓
         </a>
       </section>
 
-      {/* Marketing story — yearly family return */}
+      {/* Tradition generator story */}
       <section
         id="forever"
-        className="relative z-10 border-t border-white/8 px-6 pb-20 pt-16"
+        className="relative z-10 border-t border-white/8 px-6 pb-16 pt-16"
       >
         <div className="mx-auto max-w-md text-center">
           <p className="text-xs tracking-[0.28em] text-accent uppercase">
-            Make it last forever
+            A tradition generator
           </p>
           <h2 className="font-display mt-4 text-3xl leading-snug tracking-wide text-balance">
-            Come back next year. Open what you left.
+            Come back. Open the past. Leave something for the future.
           </h2>
           <p className="mt-5 text-pretty text-base leading-relaxed text-foreground/80">
-            Every year when you return to that cottage, that restaurant, that rink
-            with your family — you open the Moment you left for yourselves the year
-            before.
-          </p>
-          <p className="mt-4 font-display text-xl tracking-wide text-accent glow-text">
-            Literally making the moment last forever.
+            Every summer, we come back here. Every summer, we open the MOMENT we
+            left ourselves the year before.
           </p>
 
-          <ol className="mt-10 space-y-5 text-left">
+          <ul className="mt-10 space-y-4 text-left">
             {[
-              {
-                step: "01",
-                title: "Leave it here",
-                body: "Drop a picture, video, or message at a place that matters.",
-              },
-              {
-                step: "02",
-                title: "Lock until next year",
-                body: "Set a yearly tradition — it stays sealed until you return.",
-              },
-              {
-                step: "03",
-                title: "Open it together",
-                body: "Same people. Same place. A new chapter waiting.",
-              },
-            ].map((item) => (
-              <li key={item.step} className="flex gap-4">
-                <span className="font-display text-accent/90 text-lg tracking-wide">
-                  {item.step}
-                </span>
+              { year: "Year 1", body: "Young kids at the cottage — leave a video on the dock." },
+              { year: "Year 2", body: "They return and unlock last year’s video together." },
+              { year: "Year 5", body: "Same dock. Kids older. A new Moment waiting." },
+              { year: "Year 10", body: "Family still returning — the story keeps growing." },
+            ].map((row) => (
+              <li
+                key={row.year}
+                className="flex gap-4 border-l border-accent/35 pl-4"
+              >
                 <span>
-                  <span className="block text-sm font-medium text-foreground">
-                    {item.title}
+                  <span className="block text-xs tracking-[0.18em] text-accent uppercase">
+                    {row.year}
                   </span>
-                  <span className="mt-0.5 block text-sm text-muted">{item.body}</span>
+                  <span className="mt-1 block text-sm text-muted">{row.body}</span>
                 </span>
               </li>
             ))}
-          </ol>
+          </ul>
 
+          <p className="mt-10 text-pretty text-sm leading-relaxed text-foreground/75">
+            Some places become part of your story. MOMENT helps you keep adding to
+            it.
+          </p>
+        </div>
+      </section>
+
+      <section className="relative z-10 border-t border-white/8 px-6 pb-20 pt-14">
+        <div className="mx-auto max-w-md text-center">
+          <p className="text-xs tracking-[0.28em] text-accent uppercase">
+            Annual Moments
+          </p>
+          <h2 className="font-display mt-3 text-2xl tracking-wide">
+            Return here next year to unlock.
+          </h2>
+          <p className="mt-3 text-sm text-muted">
+            After you open it — create next year’s MOMENT. The tradition loops.
+          </p>
           <button
             type="button"
-            className="btn-primary mt-12 w-full"
+            className="btn-primary mt-10 w-full"
             onClick={dismissWelcome}
           >
             Start a tradition

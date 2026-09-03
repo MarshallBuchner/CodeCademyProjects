@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | MOMENT",
   },
   description:
-    "Location-locked digital time capsules. Leave a picture, video, or message — come back next year and open it together. Making the moment last forever.",
+    "A tradition generator. Leave something behind — unlock it when you return. Make the moment last forever.",
   keywords: [
     "location locked messages",
     "digital time capsule",

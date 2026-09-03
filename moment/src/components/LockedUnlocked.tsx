@@ -40,9 +40,13 @@ export function LockedView() {
       >
         ← Your Moments
       </button>
-      <p className="text-xs tracking-[0.22em] text-accent uppercase">Not there yet</p>
+      <p className="text-xs tracking-[0.22em] text-accent uppercase">
+        {activeMoment.annualTradition ? "Annual Moment" : "Not there yet"}
+      </p>
       <h1 className="font-display mt-1 text-3xl tracking-wide">
-        This Moment opens when you arrive.
+        {activeMoment.annualTradition
+          ? "Return here next year to unlock."
+          : "This Moment opens when you arrive."}
       </h1>
 
       <MapCanvas mode="path" className="mt-5 h-[300px]" />
@@ -101,7 +105,7 @@ export function LockedView() {
 }
 
 export function UnlockedView() {
-  const { activeMoment, setView, saveMomentKeep } = useMoment();
+  const { activeMoment, setView, saveMomentKeep, continueTradition } = useMoment();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -220,6 +224,23 @@ export function UnlockedView() {
       </article>
 
       <div className="mt-auto flex flex-col gap-3 pt-8">
+        {activeMoment.annualTradition && (
+          <div className="rounded-[22px] border border-accent/40 bg-accent/10 px-4 py-4">
+            <p className="text-sm font-medium text-foreground">
+              Create next year&apos;s MOMENT?
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              Same place. New chapter. Keep the tradition looping.
+            </p>
+            <button
+              type="button"
+              className="btn-primary mt-4 w-full"
+              onClick={() => continueTradition(activeMoment)}
+            >
+              Leave next year&apos;s Moment
+            </button>
+          </div>
+        )}
         <button
           type="button"
           className="btn-primary w-full"
