@@ -182,6 +182,10 @@ body {
   }
 }
 
+.safe-bottom {
+  padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+}
+
 .leaflet-container {
   font: inherit;
   background: #0a0b10;
@@ -190,4 +194,13 @@ body {
 
 .leaflet-control-attribution {
   display: none;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255,138,42,0.3); }
+  50% { box-shadow: 0 0 50px rgba(255,138,42,0.55); }
+}
+
+.gift-glow {
+  animation: glow-pulse 2.5s ease-in-out infinite;
 }

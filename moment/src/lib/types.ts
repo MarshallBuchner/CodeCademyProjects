@@ -48,6 +48,7 @@ export type AppView =
   | "welcome"
   | "home"
   | "map"
+  | "traditions"
   | "profile"
   | "drop-place"
   | "drop-record"

@@ -4,6 +4,7 @@ import { DropLeave, DropPlace, DropRecord } from "@/components/DropFlow";
 import { Home } from "@/components/Home";
 import { LockedView, UnlockedView } from "@/components/LockedUnlocked";
 import { MapView, ProfileView } from "@/components/MapAndProfile";
+import { TraditionsView } from "@/components/TraditionsView";
 import { Welcome } from "@/components/Welcome";
 import { useMoment } from "@/context/MomentProvider";
 
@@ -25,6 +26,8 @@ export function AppShell() {
       return <Home />;
     case "map":
       return <MapView />;
+    case "traditions":
+      return <TraditionsView />;
     case "profile":
       return <ProfileView />;
     case "drop-place":

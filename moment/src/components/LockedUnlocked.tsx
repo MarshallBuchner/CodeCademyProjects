@@ -162,14 +162,17 @@ export function UnlockedView() {
       <p className="text-xs tracking-[0.22em] text-accent uppercase">You&apos;ve arrived</p>
       <h1 className="font-display mt-1 text-3xl tracking-wide">This Moment is for you.</h1>
 
-      <div className="mx-auto mt-6 grid h-16 w-16 place-items-center rounded-full border border-accent/50 bg-accent/15 text-accent shadow-[0_0_30px_rgba(255,138,42,0.35)]">
+      <div className="mx-auto mt-6 grid h-16 w-16 place-items-center rounded-full border border-accent/50 bg-accent/15 text-accent gift-glow">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
           <path d="M5 12l5 5L20 7" />
         </svg>
       </div>
 
       <article className="mt-6 rounded-[24px] border border-accent/35 bg-card/90 p-5 shadow-[0_0_40px_rgba(255,138,42,0.12)]">
-        <h2 className="font-medium text-foreground">{activeMoment.title}</h2>
+        <p className="text-xs tracking-[0.22em] text-accent/80 uppercase">
+          {activeMoment.annualTradition ? "Annual Moment" : "From you to you"}
+        </p>
+        <h2 className="mt-2 font-medium text-foreground">{activeMoment.title}</h2>
         <p className="mt-1 text-xs text-muted">{activeMoment.placeName}</p>
         {activeMoment.note && (
           <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">

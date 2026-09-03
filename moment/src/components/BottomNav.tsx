@@ -26,6 +26,16 @@ const tabs: { id: AppView; label: string; icon: ReactNode }[] = [
     ),
   },
   {
+    id: "traditions",
+    label: "Traditions",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    ),
+  },
+  {
     id: "profile",
     label: "Profile",
     icon: (
@@ -37,9 +47,11 @@ const tabs: { id: AppView; label: string; icon: ReactNode }[] = [
   },
 ];
 
+const navViews = new Set<string>(["home", "map", "traditions", "profile"]);
+
 export function BottomNav() {
   const { view, setView } = useMoment();
-  const active = view === "home" || view === "map" || view === "profile" ? view : "home";
+  const active = navViews.has(view) ? view : "home";
 
   return (
     <nav className="safe-bottom sticky bottom-0 z-20 border-t border-white/8 bg-[#07080c]/92 backdrop-blur-xl">
