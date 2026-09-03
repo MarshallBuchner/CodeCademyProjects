@@ -137,6 +137,71 @@ export function Welcome() {
         </div>
       </section>
 
+      {/* Use cases — from new marketing set */}
+      <section className="border-t border-white/8 px-6 pb-16 pt-14">
+        <div className="mx-auto max-w-md">
+          <p className="text-center text-xs tracking-[0.28em] text-accent uppercase">
+            Made for what matters
+          </p>
+          <h2 className="font-display mt-3 text-center text-3xl tracking-wide text-balance">
+            Anniversary. Trip. Proposal. Team. Future you.
+          </h2>
+          <ul className="mt-8 flex flex-col gap-4">
+            {[
+              {
+                src: "/branding/hero-anniversary.jpg",
+                label: "Anniversary",
+                line: "For the place we first met.",
+              },
+              {
+                src: "/branding/hero-trip.jpg",
+                label: "Trips",
+                line: "Leave a piece of the trip behind.",
+              },
+              {
+                src: "/branding/hero-proposal.jpg",
+                label: "Proposals",
+                line: "A proposal they’ll never forget.",
+              },
+              {
+                src: "/branding/hero-team.jpg",
+                label: "Teams",
+                line: "Every season deserves a MOMENT.",
+              },
+              {
+                src: "/branding/hero-future.jpg",
+                label: "Future you",
+                line: "Leave something for the person you’re becoming.",
+              },
+            ].map((item) => (
+              <li
+                key={item.label}
+                className="relative overflow-hidden rounded-[22px] border border-white/10"
+              >
+                <div className="relative h-36 w-full">
+                  <Image
+                    src={item.src}
+                    alt=""
+                    fill
+                    className="object-cover object-center"
+                    sizes="(max-width: 448px) 100vw, 448px"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
+                </div>
+                <div className="absolute inset-x-0 bottom-0 px-4 pb-4">
+                  <p className="text-[11px] tracking-[0.22em] text-accent uppercase">
+                    {item.label}
+                  </p>
+                  <p className="mt-1 font-display text-xl tracking-wide text-foreground">
+                    {item.line}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       {/* Features + CTA */}
       <section className="border-t border-white/8 px-6 pb-20 pt-14">
         <div className="mx-auto max-w-md">
