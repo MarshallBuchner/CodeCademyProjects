@@ -28,7 +28,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 **Without Supabase:** works immediately in guest/local mode.
 
-**With Supabase:** see [SETUP.md](./SETUP.md) for full deploy + domain guide.
+**With Supabase:** see [SETUP.md](./SETUP.md) for full deploy + domain guide.  
+**Reminders:** see [REMINDERS.md](./REMINDERS.md) after cloud sync is live.
 
 ## Deploy
 
