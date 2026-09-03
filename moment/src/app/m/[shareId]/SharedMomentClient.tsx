@@ -142,6 +142,7 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
 
   const voice = capsule.media.find((m) => m.kind === "voice");
   const photo = capsule.media.find((m) => m.kind === "photo");
+  const video = capsule.media.find((m) => m.kind === "video");
   const moment = capsuleToLocalMoment(capsule);
 
   if (phase === "pin") {
@@ -270,6 +271,15 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
             src={photo.payload}
             alt=""
             className="mt-4 h-36 w-full rounded-2xl object-cover"
+          />
+        )}
+        {video && (
+          // eslint-disable-next-line jsx-a11y/media-has-caption
+          <video
+            src={video.payload}
+            controls
+            playsInline
+            className="mt-4 h-44 w-full rounded-2xl object-cover bg-black"
           />
         )}
       </article>

@@ -16,7 +16,7 @@ export function Welcome() {
           Leave something behind. Unlock it when you return.
         </p>
         <p className="mt-4 text-xs tracking-[0.22em] text-muted uppercase">
-          Location-locked · Private · Audio, photo & notes
+          Location-locked · Private · Picture, video & messages
         </p>
 
         <div className="mt-12 flex w-full max-w-sm flex-col gap-3">

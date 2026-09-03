@@ -112,6 +112,10 @@ export function UnlockedView() {
     () => activeMoment?.media.find((m) => m.kind === "photo"),
     [activeMoment],
   );
+  const video = useMemo(
+    () => activeMoment?.media.find((m) => m.kind === "video"),
+    [activeMoment],
+  );
 
   if (!activeMoment) {
     return (
@@ -199,6 +203,16 @@ export function UnlockedView() {
             src={photo.payload}
             alt=""
             className="mt-4 h-36 w-full rounded-2xl object-cover"
+          />
+        )}
+
+        {video && (
+          // eslint-disable-next-line jsx-a11y/media-has-caption
+          <video
+            src={video.payload}
+            controls
+            playsInline
+            className="mt-4 h-44 w-full rounded-2xl object-cover bg-black"
           />
         )}
       </article>

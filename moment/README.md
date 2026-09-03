@@ -2,7 +2,7 @@
 
 **Leave something behind. Unlock it when you return.**
 
-Location-locked digital time capsules — drop a voice, photo, or note at a real place, then unlock it only when you come back.
+Location-locked digital time capsules — drop a picture, video, or written message at a real place, then unlock it only when you come back.
 
 ## Verdict (idea eval)
 
@@ -17,7 +17,7 @@ Interactive prototype matching your Drop → Return → Unlock flow:
 | Welcome | Brand, tagline, Get Started / demo seed |
 | Home | Your Moments list + drop CTA |
 | Choose place | Pin presets / current GPS |
-| Record | Title, note, voice (MediaRecorder), photo |
+| Record | Title + picture / video / written message (+ optional voice) |
 | Leave it here | Location lock + optional time lock |
 | Locked | Distance to unlock + path map |
 | Unlocked | Note / audio / photo reveal |

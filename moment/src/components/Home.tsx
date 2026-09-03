@@ -32,7 +32,7 @@ export function Home() {
           <div className="flex flex-1 flex-col items-center justify-center rounded-[28px] border border-dashed border-white/12 bg-card/40 px-6 py-16 text-center">
             <p className="font-display text-xl tracking-wide">Nothing left yet</p>
             <p className="mt-2 max-w-xs text-sm text-muted">
-              Drop your first Moment at a place that matters — a note, photo, or voice for later.
+              Drop your first Moment at a place that matters — a picture, video, or written message.
             </p>
             <button type="button" className="btn-primary mt-8 w-full" onClick={startDrop}>
               + Drop a Moment
@@ -68,6 +68,19 @@ export function Home() {
                           alt=""
                           className="h-full w-full object-cover"
                         />
+                      ) : m.media.find((x) => x.kind === "video") ? (
+                        <div className="relative h-full w-full bg-black">
+                          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                          <video
+                            src={m.media.find((x) => x.kind === "video")!.payload}
+                            className="h-full w-full object-cover opacity-80"
+                            muted
+                            playsInline
+                          />
+                          <span className="absolute inset-0 grid place-items-center text-accent text-xs">
+                            ▶
+                          </span>
+                        </div>
                       ) : (
                         <div className="grid h-full w-full place-items-center text-accent/80">
                           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">

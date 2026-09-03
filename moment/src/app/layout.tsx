@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | MOMENT",
   },
   description:
-    "Location-locked digital time capsules. Drop a voice, photo, or note — unlock it only when you return.",
+    "Location-locked digital time capsules. Drop a picture, video, or written message — unlock it only when you return.",
   keywords: [
     "location locked messages",
     "digital time capsule",

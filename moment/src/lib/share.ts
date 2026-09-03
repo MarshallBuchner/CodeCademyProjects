@@ -103,11 +103,12 @@ export function createCapsuleFromMoment(input: {
 }): SharedCapsule {
   const shareId = randomToken(12);
   const accessKey = randomToken(18);
-  // Prefer lean media for link size — keep note + compressed photo if present
+  // Prefer lean media for link size
   const media = input.moment.media.filter((m) => {
     if (m.kind === "note") return true;
     if (m.kind === "voice") return m.payload.length < 400_000;
     if (m.kind === "photo") return m.payload.length < 900_000;
+    if (m.kind === "video") return m.payload.length < 1_400_000;
     return false;
   });
 

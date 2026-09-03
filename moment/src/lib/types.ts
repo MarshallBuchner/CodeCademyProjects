@@ -1,4 +1,4 @@
-export type MediaKind = "voice" | "photo" | "note";
+export type MediaKind = "photo" | "video" | "note" | "voice";
 
 export type Coords = {
   lat: number;
@@ -7,9 +7,10 @@ export type Coords = {
 
 export type MomentMedia = {
   kind: MediaKind;
-  /** data URL for photo/voice; plain text for note */
+  /** data URL for photo/video/voice; plain text for note */
   payload: string;
   durationSeconds?: number;
+  mimeType?: string;
 };
 
 export type MomentRecord = {

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapCanvas } from "@/components/MapCanvas";
 import { useMoment } from "@/context/MomentProvider";
 import { offsetCoords } from "@/lib/geo";
+import { compressImageFile, readFileAsDataUrl } from "@/lib/media";
 import type { MediaKind, MomentMedia } from "@/lib/types";
 
 export function DropPlace() {
@@ -116,8 +117,9 @@ export function DropPlace() {
 
 export function DropRecord() {
   const { draft, setDraft, setView } = useMoment();
-  const [active, setActive] = useState<MediaKind>("voice");
+  const [active, setActive] = useState<MediaKind>("note");
   const [recording, setRecording] = useState(false);
+  const [busy, setBusy] = useState(false);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const startedAt = useRef(0);
@@ -153,6 +155,7 @@ export function DropRecord() {
               1,
               Math.round((Date.now() - startedAt.current) / 1000),
             ),
+            mimeType: "audio/webm",
           });
         };
         reader.readAsDataURL(blob);
@@ -167,18 +170,51 @@ export function DropRecord() {
     }
   }
 
-  function onPhoto(file: File | null) {
+  async function onPhoto(file: File | null) {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      upsertMedia({ kind: "photo", payload: String(reader.result) });
+    setBusy(true);
+    try {
+      const { dataUrl, mimeType } = await compressImageFile(file);
+      upsertMedia({ kind: "photo", payload: dataUrl, mimeType });
       setActive("photo");
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      alert("Could not read that picture.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onVideo(file: File | null) {
+    if (!file) return;
+    // ~2.5MB data-URL ceiling keeps share links / localStorage workable
+    if (file.size > 1.8 * 1024 * 1024) {
+      alert(
+        "Video is a bit large for this prototype (keep under ~1.8 MB). Trim it or use a short clip.",
+      );
+      return;
+    }
+    setBusy(true);
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      upsertMedia({
+        kind: "video",
+        payload: dataUrl,
+        mimeType: file.type || "video/mp4",
+      });
+      setActive("video");
+    } catch {
+      alert("Could not read that video.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const voice = draft.media.find((m) => m.kind === "voice");
   const photo = draft.media.find((m) => m.kind === "photo");
+  const video = draft.media.find((m) => m.kind === "video");
+  const attached = [photo && "Picture", video && "Video", draft.note.trim() && "Message", voice && "Voice"]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-8 pt-6">
@@ -190,7 +226,9 @@ export function DropRecord() {
         ← Back
       </button>
       <h1 className="font-display text-3xl tracking-wide">Record your Moment</h1>
-      <p className="mt-1 text-sm text-muted">{draft.placeName}</p>
+      <p className="mt-1 text-sm text-muted">
+        Picture, video, or a written message — at {draft.placeName || "this place"}.
+      </p>
 
       <label className="mt-6 block text-xs tracking-wide text-muted uppercase">
         Title
@@ -202,47 +240,119 @@ export function DropRecord() {
         />
       </label>
 
-      <label className="mt-4 block text-xs tracking-wide text-muted uppercase">
-        Note
-        <textarea
-          className="field mt-2 min-h-28 resize-none"
-          value={draft.note}
-          onChange={(e) => {
-            setDraft({ note: e.target.value });
-            if (e.target.value.trim()) {
-              upsertMedia({ kind: "note", payload: e.target.value });
-              setActive("note");
-            }
-          }}
-          placeholder="Write something meaningful…"
-        />
-      </label>
-
       <div className="mt-5 grid grid-cols-3 gap-3">
         {(
           [
-            { kind: "voice" as const, label: "Voice", icon: "🎙️" },
-            { kind: "photo" as const, label: "Photo", icon: "🖼️" },
-            { kind: "note" as const, label: "Note", icon: "📝" },
+            { kind: "photo" as const, label: "Picture", icon: "🖼️" },
+            { kind: "video" as const, label: "Video", icon: "🎬" },
+            { kind: "note" as const, label: "Message", icon: "✍️" },
           ] as const
-        ).map((item) => (
-          <button
-            key={item.kind}
-            type="button"
-            onClick={() => setActive(item.kind)}
-            className={`rounded-[20px] border px-3 py-4 text-center transition ${
-              active === item.kind
-                ? "border-accent/60 bg-accent/15 text-accent shadow-[0_0_24px_rgba(255,138,42,0.2)]"
-                : "border-white/8 bg-card text-muted"
-            }`}
-          >
-            <span className="block text-xl">{item.icon}</span>
-            <span className="mt-1 block text-xs">{item.label}</span>
-          </button>
-        ))}
+        ).map((item) => {
+          const has =
+            item.kind === "note"
+              ? Boolean(draft.note.trim())
+              : draft.media.some((m) => m.kind === item.kind);
+          return (
+            <button
+              key={item.kind}
+              type="button"
+              onClick={() => setActive(item.kind)}
+              className={`rounded-[20px] border px-3 py-4 text-center transition ${
+                active === item.kind
+                  ? "border-accent/60 bg-accent/15 text-accent shadow-[0_0_24px_rgba(255,138,42,0.2)]"
+                  : "border-white/8 bg-card text-muted"
+              }`}
+            >
+              <span className="block text-xl">{item.icon}</span>
+              <span className="mt-1 block text-xs">{item.label}</span>
+              {has && <span className="mt-1 block text-[10px] text-accent">Added</span>}
+            </button>
+          );
+        })}
       </div>
 
+      <button
+        type="button"
+        onClick={() => setActive("voice")}
+        className={`mt-3 rounded-2xl border px-4 py-3 text-left text-sm transition ${
+          active === "voice"
+            ? "border-accent/50 bg-accent/10 text-accent"
+            : "border-white/8 bg-card text-muted"
+        }`}
+      >
+        + Optional voice note {voice ? "· Added" : ""}
+      </button>
+
       <div className="mt-5 rounded-[22px] border border-white/8 bg-card p-4">
+        {active === "photo" && (
+          <div className="flex flex-col items-center gap-3">
+            {photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photo.payload} alt="" className="h-40 w-full rounded-xl object-cover" />
+            ) : (
+              <p className="py-6 text-sm text-muted">Add a picture from this place.</p>
+            )}
+            <label className="btn-primary w-full cursor-pointer text-center">
+              {busy ? "Working…" : photo ? "Replace picture" : "Choose picture"}
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                disabled={busy}
+                onChange={(e) => void onPhoto(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          </div>
+        )}
+
+        {active === "video" && (
+          <div className="flex flex-col items-center gap-3">
+            {video ? (
+              // eslint-disable-next-line jsx-a11y/media-has-caption
+              <video
+                src={video.payload}
+                controls
+                playsInline
+                className="h-44 w-full rounded-xl object-cover bg-black"
+              />
+            ) : (
+              <p className="py-6 text-center text-sm text-muted">
+                Add a short video clip (under ~1.8 MB for sharing).
+              </p>
+            )}
+            <label className="btn-primary w-full cursor-pointer text-center">
+              {busy ? "Working…" : video ? "Replace video" : "Choose video"}
+              <input
+                type="file"
+                accept="video/*"
+                capture="environment"
+                className="hidden"
+                disabled={busy}
+                onChange={(e) => void onVideo(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          </div>
+        )}
+
+        {active === "note" && (
+          <label className="block text-xs tracking-wide text-muted uppercase">
+            Written message
+            <textarea
+              className="field mt-2 min-h-36 resize-none"
+              value={draft.note}
+              onChange={(e) => {
+                setDraft({ note: e.target.value });
+                if (e.target.value.trim()) {
+                  upsertMedia({ kind: "note", payload: e.target.value });
+                }
+              }}
+              placeholder="Write something meaningful…"
+              autoFocus
+            />
+          </label>
+        )}
+
         {active === "voice" && (
           <div className="flex flex-col items-center gap-3 py-2">
             <div className="waveform flex h-12 w-full items-end justify-center gap-1">
@@ -265,36 +375,16 @@ export function DropRecord() {
             )}
           </div>
         )}
-        {active === "photo" && (
-          <div className="flex flex-col items-center gap-3">
-            {photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={photo.payload} alt="" className="h-40 w-full rounded-xl object-cover" />
-            ) : (
-              <p className="py-6 text-sm text-muted">Add a photo from this place.</p>
-            )}
-            <label className="btn-primary w-full cursor-pointer text-center">
-              {photo ? "Replace photo" : "Choose photo"}
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={(e) => onPhoto(e.target.files?.[0] ?? null)}
-              />
-            </label>
-          </div>
-        )}
-        {active === "note" && (
-          <p className="text-sm leading-relaxed text-foreground/85 whitespace-pre-wrap">
-            {draft.note || "Your note will appear here."}
-          </p>
-        )}
       </div>
+
+      {attached && (
+        <p className="mt-3 text-center text-xs text-muted">Attached: {attached}</p>
+      )}
 
       <button
         type="button"
         className="btn-primary mt-auto w-full"
+        disabled={!draft.note.trim() && draft.media.length === 0}
         onClick={() => setView("drop-leave")}
       >
         Continue
