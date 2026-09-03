@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { MapCanvas } from "@/components/MapCanvas";
+import { ShareMomentModal } from "@/components/ShareMomentModal";
 import { useMoment } from "@/context/MomentProvider";
 import { formatDistance } from "@/lib/geo";
 import { formatShortDate } from "@/lib/format";
@@ -15,6 +16,7 @@ export function LockedView() {
     refreshLocation,
     locationError,
   } = useMoment();
+  const [shareOpen, setShareOpen] = useState(false);
 
   if (!activeMoment) {
     return (
@@ -74,13 +76,24 @@ export function LockedView() {
         <span className="text-muted">›</span>
       </button>
 
-      <button
-        type="button"
-        className="btn-ghost mt-auto w-full"
-        onClick={simulateArrival}
-      >
-        Simulate arrival (demo)
-      </button>
+      <div className="mt-auto flex flex-col gap-3 pt-8">
+        <button
+          type="button"
+          className="btn-primary w-full"
+          onClick={() => setShareOpen(true)}
+        >
+          Send to someone
+        </button>
+        <button type="button" className="btn-ghost w-full" onClick={simulateArrival}>
+          Simulate arrival (demo)
+        </button>
+      </div>
+
+      <ShareMomentModal
+        moment={activeMoment}
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+      />
     </main>
   );
 }
@@ -89,6 +102,7 @@ export function UnlockedView() {
   const { activeMoment, setView, saveMomentKeep } = useMoment();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const voice = useMemo(
     () => activeMoment?.media.find((m) => m.kind === "voice"),
@@ -189,28 +203,43 @@ export function UnlockedView() {
         )}
       </article>
 
-      <div className="mt-auto flex items-center gap-3 pt-8">
+      <div className="mt-auto flex flex-col gap-3 pt-8">
         <button
           type="button"
-          className="btn-primary flex-1"
-          onClick={() => {
-            saveMomentKeep(activeMoment.id);
-            setView("home");
-          }}
+          className="btn-primary w-full"
+          onClick={() => setShareOpen(true)}
         >
-          Save this moment
+          Send to someone
         </button>
-        <button
-          type="button"
-          aria-label="Bookmark"
-          className="grid h-12 w-12 place-items-center rounded-2xl border border-white/12 bg-card text-accent"
-          onClick={() => saveMomentKeep(activeMoment.id)}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="btn-ghost flex-1"
+            onClick={() => {
+              saveMomentKeep(activeMoment.id);
+              setView("home");
+            }}
+          >
+            Save this moment
+          </button>
+          <button
+            type="button"
+            aria-label="Bookmark"
+            className="grid h-12 w-12 place-items-center rounded-2xl border border-white/12 bg-card text-accent"
+            onClick={() => saveMomentKeep(activeMoment.id)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" />
+            </svg>
+          </button>
+        </div>
       </div>
+
+      <ShareMomentModal
+        moment={activeMoment}
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+      />
     </main>
   );
 }

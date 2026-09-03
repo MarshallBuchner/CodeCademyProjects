@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { MapCanvas } from "@/components/MapCanvas";
 import { useMoment } from "@/context/MomentProvider";
 import { distanceMeters, formatDistance } from "@/lib/geo";
+import { loadOutbox, type OutboundShare } from "@/lib/share";
 
 export function MapView() {
   const { moments, userCoords, openMoment, startDrop } = useMoment();
@@ -54,6 +56,11 @@ export function ProfileView() {
   const { moments, setView, locationError, refreshLocation, userCoords } =
     useMoment();
   const unlocked = moments.filter((m) => m.unlockedAt).length;
+  const [outbox, setOutbox] = useState<OutboundShare[]>([]);
+
+  useEffect(() => {
+    setOutbox(loadOutbox());
+  }, []);
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -86,6 +93,30 @@ export function ProfileView() {
           >
             Refresh location
           </button>
+        </div>
+
+        <div className="mt-5 rounded-[22px] border border-white/8 bg-card p-4">
+          <p className="text-sm font-medium">Sent privately</p>
+          <p className="mt-1 text-xs text-muted">
+            Secret links only work for people you send them to (plus optional PIN).
+          </p>
+          {outbox.length === 0 ? (
+            <p className="mt-3 text-xs text-muted">No shared Moments yet.</p>
+          ) : (
+            <ul className="mt-3 flex flex-col gap-2">
+              {outbox.map((s) => (
+                <li
+                  key={s.shareId}
+                  className="rounded-xl border border-white/8 bg-black/25 px-3 py-2"
+                >
+                  <p className="text-sm">{s.title}</p>
+                  <p className="text-xs text-muted">
+                    For {s.recipientName} · {s.placeName}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <button

@@ -27,6 +27,20 @@ Interactive prototype matching your Drop → Return → Unlock flow:
 - **Simulate arrival** button for desktop / demo testing
 - Dark + amber design system from the mockups
 
+## Private share links
+
+Drop a Moment → **Send to someone**:
+
+1. Enter who it’s for (+ optional PIN you tell them separately)
+2. Copy / share the secret link
+3. They open `/m/...` → enter PIN if set → Moment stays locked until they’re at the place
+
+Access control for this MVP:
+- Unguessable `accessKey` in the link (don’t post publicly)
+- Optional PIN for “only them”
+- Geofence still required to reveal content
+- Capsule payload rides in the URL hash (works cross-device with no backend)
+
 ## Run locally
 
 ```bash
