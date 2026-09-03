@@ -349,10 +349,22 @@ export function DropRecord() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={photo.payload} alt="" className="h-40 w-full rounded-xl object-cover" />
             ) : (
-              <p className="py-6 text-sm text-muted">Add a picture from this place.</p>
+              <p className="py-6 text-center text-sm text-muted">
+                Use a shot from your camera roll — or take a new one here.
+              </p>
             )}
             <label className="btn-primary w-full cursor-pointer text-center">
-              {busy ? "Working…" : photo ? "Replace picture" : "Choose picture"}
+              {busy ? "Working…" : photo ? "Choose another from library" : "Choose from library"}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={busy}
+                onChange={(e) => void onPhoto(e.target.files?.[0] ?? null)}
+              />
+            </label>
+            <label className="btn-ghost w-full cursor-pointer text-center text-sm">
+              Take a new photo
               <input
                 type="file"
                 accept="image/*"
@@ -377,11 +389,21 @@ export function DropRecord() {
               />
             ) : (
               <p className="py-6 text-center text-sm text-muted">
-                Add a short video clip (under ~1.8 MB for sharing).
+                Pick a clip from your camera roll (under ~1.8 MB), or record a new one.
               </p>
             )}
             <label className="btn-primary w-full cursor-pointer text-center">
-              {busy ? "Working…" : video ? "Replace video" : "Choose video"}
+              {busy ? "Working…" : video ? "Choose another from library" : "Choose from library"}
+              <input
+                type="file"
+                accept="video/*"
+                className="hidden"
+                disabled={busy}
+                onChange={(e) => void onVideo(e.target.files?.[0] ?? null)}
+              />
+            </label>
+            <label className="btn-ghost w-full cursor-pointer text-center text-sm">
+              Record a new video
               <input
                 type="file"
                 accept="video/*"
