@@ -43,6 +43,29 @@ export type DailyCheckIn = {
   note?: string;
 };
 
+/** One logged puff (or multi-count hit) toward today's budget. */
+export type PuffLog = {
+  id: string;
+  loggedAt: string;
+  count: number;
+};
+
+export type DayPacing = {
+  baselinePuffs: number;
+  todayTarget: number;
+  used: number;
+  remaining: number;
+  budgetUsedPct: number;
+  onPace: boolean;
+  vsBaselinePct: number;
+  nextWindowLabel: string;
+  waitMinutes: number | null;
+  /** Cumulative puff counts by hour 0–23 for today's chart. */
+  hourlyCumulative: number[];
+  /** Expected baseline cumulative by hour (for dashed line). */
+  hourlyBaseline: number[];
+};
+
 export type PlanStats = {
   nicotineReductionPct: number;
   moneySaved: number;

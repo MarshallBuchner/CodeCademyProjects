@@ -12,10 +12,13 @@ import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import * as dataService from "@/lib/data/service";
 import { computePlanStats } from "@/lib/curve";
-import type { PlanStats } from "@/lib/types";
+import { computeDayPacing } from "@/lib/pacing";
 import type {
   CravingLog,
   DailyCheckIn,
+  DayPacing,
+  PlanStats,
+  PuffLog,
   UserPlan,
   UserProfile,
 } from "@/lib/types";
@@ -30,8 +33,10 @@ type QuitCurveContextValue = {
   user: UserProfile | null;
   plan: UserPlan | null;
   stats: PlanStats | null;
+  pacing: DayPacing | null;
   cravings: CravingLog[];
   checkIns: DailyCheckIn[];
+  puffs: PuffLog[];
   todayCheckIn: DailyCheckIn | null;
   loading: boolean;
   cloudEnabled: boolean;
@@ -42,6 +47,7 @@ type QuitCurveContextValue = {
   logout: () => Promise<void>;
   setUserPlan: (plan: UserPlan) => Promise<void>;
   logCraving: (data: Omit<CravingLog, "id" | "loggedAt">) => Promise<void>;
+  logPuff: (count?: number) => Promise<void>;
   submitCheckIn: (data: Omit<DailyCheckIn, "id" | "date">) => Promise<void>;
 };
 
@@ -52,6 +58,7 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
   const [plan, setPlan] = useState<UserPlan | null>(null);
   const [cravings, setCravings] = useState<CravingLog[]>([]);
   const [checkIns, setCheckIns] = useState<DailyCheckIn[]>([]);
+  const [puffs, setPuffs] = useState<PuffLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [cloudSynced, setCloudSynced] = useState(false);
   const cloudEnabled = isSupabaseConfigured();
@@ -63,6 +70,7 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
     setPlan(state.plan);
     setCravings(state.cravings);
     setCheckIns(state.checkIns);
+    setPuffs(state.puffs);
     setCloudSynced(state.cloudSynced);
     setLoading(false);
   }, []);
@@ -73,14 +81,12 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!cloudEnabled) return;
-
     const supabase = createClient();
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
       refresh();
     });
-
     return () => subscription.unsubscribe();
   }, [cloudEnabled, refresh]);
 
@@ -88,6 +94,11 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
     if (!plan) return null;
     return computePlanStats(plan, dataService.getManagedCount(cravings));
   }, [plan, cravings]);
+
+  const pacing = useMemo(() => {
+    if (!plan) return null;
+    return computeDayPacing(plan, puffs);
+  }, [plan, puffs]);
 
   const todayCheckIn = useMemo(
     () =>
@@ -100,8 +111,10 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
     user,
     plan,
     stats,
+    pacing,
     cravings,
     checkIns,
+    puffs,
     todayCheckIn,
     loading,
     cloudEnabled,
@@ -134,6 +147,10 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
         await dataService.logCraving(cravingData, user?.id);
       setPlan(updatedPlan);
       setCravings(updatedCravings);
+    },
+    logPuff: async (count = 1) => {
+      const updated = await dataService.logPuff(count, user?.id);
+      setPuffs(updated);
     },
     submitCheckIn: async (checkInData) => {
       const updated = await dataService.saveCheckIn(checkInData, user?.id);

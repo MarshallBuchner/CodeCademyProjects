@@ -4,6 +4,7 @@ import * as local from "@/lib/storage";
 import type {
   CravingLog,
   DailyCheckIn,
+  PuffLog,
   UserPlan,
   UserProfile,
 } from "@/lib/types";
@@ -17,6 +18,7 @@ export async function loadAppState(): Promise<{
   plan: UserPlan | null;
   cravings: CravingLog[];
   checkIns: DailyCheckIn[];
+  puffs: PuffLog[];
   cloudSynced: boolean;
 }> {
   if (!usingCloudSync()) {
@@ -25,6 +27,7 @@ export async function loadAppState(): Promise<{
       plan: local.getPlan(),
       cravings: local.getCravings(),
       checkIns: local.getCheckIns(),
+      puffs: local.getPuffs(),
       cloudSynced: false,
     };
   }
@@ -36,6 +39,7 @@ export async function loadAppState(): Promise<{
       plan: local.getPlan(),
       cravings: local.getCravings(),
       checkIns: local.getCheckIns(),
+      puffs: local.getPuffs(),
       cloudSynced: false,
     };
   }
@@ -44,19 +48,28 @@ export async function loadAppState(): Promise<{
   const localPlan = local.getPlan();
   const localCravings = local.getCravings();
   const localCheckIns = local.getCheckIns();
+  const localPuffs = local.getPuffs();
 
-  if (localPlan || localCravings.length || localCheckIns.length) {
+  if (
+    localPlan ||
+    localCravings.length ||
+    localCheckIns.length ||
+    localPuffs.length
+  ) {
     await cloud.syncLocalToCloud(user.id, {
       plan: localPlan,
       cravings: localCravings,
       checkIns: localCheckIns,
+      puffs: localPuffs,
     });
     const merged = await cloud.fetchUserData(user.id);
+    if (merged.puffs.length) local.writePuffs(merged.puffs);
     return {
       user,
       plan: merged.plan ?? localPlan,
       cravings: merged.cravings.length ? merged.cravings : localCravings,
       checkIns: merged.checkIns.length ? merged.checkIns : localCheckIns,
+      puffs: merged.puffs.length ? merged.puffs : localPuffs,
       cloudSynced: true,
     };
   }
@@ -109,7 +122,7 @@ export async function logCraving(
   userId?: string,
 ): Promise<{ plan: UserPlan | null; cravings: CravingLog[] }> {
   if (usingCloudSync() && userId) {
-    const log = await cloud.insertCraving(userId, data);
+    await cloud.insertCraving(userId, data);
     let plan = local.getPlan();
     if (plan && !data.managed && data.intensity >= 4) {
       plan = { ...plan, slipCount: plan.slipCount + 1 };
@@ -122,9 +135,22 @@ export async function logCraving(
     return { plan: remote.plan ?? plan, cravings: remote.cravings };
   }
 
-  const log = local.addCraving(data);
-  void log;
+  local.addCraving(data);
   return { plan: local.getPlan(), cravings: [...local.getCravings()] };
+}
+
+export async function logPuff(
+  count = 1,
+  userId?: string,
+): Promise<PuffLog[]> {
+  if (usingCloudSync() && userId) {
+    await cloud.insertPuff(userId, count);
+    const remote = await cloud.fetchUserData(userId);
+    local.writePuffs(remote.puffs);
+    return remote.puffs;
+  }
+  local.addPuff(count);
+  return [...local.getPuffs()];
 }
 
 export async function saveCheckIn(

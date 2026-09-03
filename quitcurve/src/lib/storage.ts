@@ -1,6 +1,7 @@
 import type {
   CravingLog,
   DailyCheckIn,
+  PuffLog,
   UserPlan,
   UserProfile,
 } from "./types";
@@ -11,6 +12,7 @@ const KEYS = {
   plan: "quitcurve-plan",
   cravings: "quitcurve-cravings",
   checkins: "quitcurve-checkins",
+  puffs: "quitcurve-puffs",
 } as const;
 
 function read<T>(key: string, fallback: T): T {
@@ -132,4 +134,22 @@ export function writeCravings(cravings: CravingLog[]): void {
 
 export function writeCheckIns(checkIns: DailyCheckIn[]): void {
   write(KEYS.checkins, checkIns);
+}
+
+export function getPuffs(): PuffLog[] {
+  return read<PuffLog[]>(KEYS.puffs, []);
+}
+
+export function addPuff(count = 1): PuffLog {
+  const log: PuffLog = {
+    id: crypto.randomUUID(),
+    loggedAt: new Date().toISOString(),
+    count: Math.min(20, Math.max(1, count)),
+  };
+  write(KEYS.puffs, [...getPuffs(), log]);
+  return log;
+}
+
+export function writePuffs(puffs: PuffLog[]): void {
+  write(KEYS.puffs, puffs);
 }

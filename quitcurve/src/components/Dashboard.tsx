@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckInModal } from "./CheckInModal";
 import { CravingLogModal } from "./CravingLogModal";
+import { DayPacingChart } from "./DayPacingChart";
 import { Logo } from "./Logo";
-import { NicotineCurveChart } from "./NicotineCurveChart";
 import { OnboardingFlow } from "./OnboardingFlow";
 import { useQuitCurve } from "@/context/QuitCurveProvider";
 import { getPaceLabel, STATUS_LABELS } from "@/lib/curve";
@@ -14,13 +14,23 @@ import { getTimeGreeting } from "@/lib/greeting";
 
 export function Dashboard() {
   const router = useRouter();
-  const { user, plan, stats, todayCheckIn, logout, cloudSynced } = useQuitCurve();
+  const {
+    user,
+    plan,
+    stats,
+    pacing,
+    todayCheckIn,
+    logout,
+    cloudSynced,
+    logPuff,
+  } = useQuitCurve();
   const [cravingOpen, setCravingOpen] = useState(false);
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loggingPuff, setLoggingPuff] = useState(false);
 
-  if (!plan || !stats) {
+  if (!plan || !stats || !pacing) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-5 text-center">
         <Logo />
@@ -48,6 +58,17 @@ export function Dashboard() {
   }
 
   const firstName = user?.name?.split(" ")[0] ?? "there";
+  const ringPct = Math.min(100, pacing.budgetUsedPct);
+  const ringOffset = 100 - ringPct;
+
+  const handleLogPuff = async () => {
+    setLoggingPuff(true);
+    try {
+      await logPuff(1);
+    } finally {
+      setLoggingPuff(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -123,21 +144,125 @@ export function Dashboard() {
           </button>
         )}
 
-        <div className="mt-6 rounded-2xl border border-white/8 bg-card p-5">
-          <div className="mb-2 flex items-start justify-between">
-            <div>
-              <p className="text-4xl font-bold text-accent">
-                {stats.nicotineReductionPct}%
-              </p>
-              <p className="text-sm text-muted">less nicotine</p>
+        <div className="mt-6 rounded-3xl border border-white/8 bg-card p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+            Today&apos;s target
+          </p>
+          <p className="mt-1 text-4xl font-bold tracking-tight">
+            {pacing.todayTarget}{" "}
+            <span className="text-lg font-medium text-muted">puffs</span>
+          </p>
+
+          <div className="mt-5 flex items-center justify-between gap-3">
+            <div className="min-w-[4.5rem] text-center">
+              <p className="text-2xl font-semibold">{pacing.used}</p>
+              <p className="text-xs text-muted">used</p>
             </div>
-            <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-              {STATUS_LABELS[stats.status]}
+
+            <div className="relative flex h-28 w-28 shrink-0 items-center justify-center">
+              <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.5"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.08)"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.5"
+                  fill="none"
+                  stroke="#5ee9b5"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeDasharray="100"
+                  strokeDashoffset={ringOffset}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <p className="text-lg font-bold text-accent">{ringPct}%</p>
+                <p className="px-2 text-[10px] leading-tight text-muted">
+                  of today&apos;s budget
+                </p>
+              </div>
+            </div>
+
+            <div className="min-w-[4.5rem] text-center">
+              <p className="text-2xl font-semibold">{pacing.remaining}</p>
+              <p className="text-xs text-muted">remaining</p>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
+                pacing.onPace
+                  ? "bg-accent/15 text-accent"
+                  : "bg-amber-500/15 text-amber-300"
+              }`}
+            >
+              {pacing.onPace ? "✓ On pace" : "Behind pace"}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-xs text-muted">
+              {pacing.vsBaselinePct >= 0 ? "↓" : "↑"}{" "}
+              {Math.abs(pacing.vsBaselinePct)}%{" "}
+              {pacing.vsBaselinePct >= 0 ? "below" : "above"} baseline
             </span>
           </div>
-          <NicotineCurveChart points={stats.curvePoints} />
-          <p className="mt-3 text-center text-xs text-muted">
-            Today&apos;s target: {stats.todayTargetPct}% of baseline
+        </div>
+
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-card px-4 py-3">
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-muted">
+              Next pacing window
+            </p>
+            <p className="mt-0.5 text-xl font-semibold">
+              {pacing.nextWindowLabel}
+            </p>
+          </div>
+          <p className="max-w-[40%] text-right text-sm text-muted">
+            {pacing.waitMinutes != null
+              ? `Try to wait ${pacing.waitMinutes} min`
+              : "Protect your remaining budget"}
+          </p>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={handleLogPuff}
+            disabled={loggingPuff}
+            className="flex items-center justify-center gap-2 rounded-full bg-accent py-4 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-60"
+          >
+            <span className="text-lg leading-none">+</span>
+            {loggingPuff ? "Logging…" : "Log a puff"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setCravingOpen(true)}
+            className="flex items-center justify-center gap-2 rounded-full border border-white/15 py-4 text-sm font-medium transition hover:border-accent/40"
+          >
+            Log craving
+          </button>
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-white/8 bg-card p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-sm font-semibold">Your curve</p>
+            <div className="flex gap-3 text-[10px] text-muted">
+              <span>Baseline · dashed</span>
+              <span className="text-accent">Today</span>
+            </div>
+          </div>
+          <DayPacingChart
+            today={pacing.hourlyCumulative}
+            baseline={pacing.hourlyBaseline}
+            maxY={Math.max(pacing.baselinePuffs, pacing.todayTarget)}
+          />
+          <p className="mt-2 text-center text-xs text-muted">
+            {STATUS_LABELS[stats.status]} · Day {stats.currentDay}
           </p>
         </div>
 
@@ -157,37 +282,12 @@ export function Dashboard() {
           ))}
         </div>
 
-        <div className="mt-4 rounded-2xl border border-white/5 bg-card px-5 py-4 text-center text-sm text-muted">
-          {stats.status === "adapting" ? (
-            <>
-              Life happened — your curve is{" "}
-              <span className="text-accent">adapting</span>, not resetting.
-              You&apos;ve got this.
-            </>
-          ) : (
-            <>
-              You&apos;re building something better every day.{" "}
-              <span className="text-accent">Stay consistent.</span>
-            </>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setCravingOpen(true)}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-accent py-4 text-sm font-semibold text-background transition hover:bg-accent-dim"
-        >
-          <span className="text-lg leading-none">+</span>
-          Log a craving
-        </button>
-
         <p className="mt-8 text-center text-xs text-white/30">
-          Day {stats.currentDay} •{" "}
           {user
             ? cloudSynced
               ? `Synced as ${user.name}`
               : `Signed in as ${user.name}`
-            : "Guest mode"}
+            : "Guest mode · puffs saved on this device"}
         </p>
       </main>
 

@@ -2,6 +2,7 @@ import { createClient } from "./client";
 import type {
   CravingLog,
   DailyCheckIn,
+  PuffLog,
   UserPlan,
   UserProfile,
 } from "@/lib/types";
@@ -31,6 +32,12 @@ type CheckInRow = {
   mood: string;
   stayed_on_plan: boolean;
   note: string | null;
+};
+
+type PuffRow = {
+  id: string;
+  logged_at: string;
+  count: number;
 };
 
 function toPlan(row: PlanRow): UserPlan {
@@ -63,6 +70,14 @@ function toCheckIn(row: CheckInRow): DailyCheckIn {
     mood: row.mood as DailyCheckIn["mood"],
     stayedOnPlan: row.stayed_on_plan,
     note: row.note ?? undefined,
+  };
+}
+
+function toPuff(row: PuffRow): PuffLog {
+  return {
+    id: row.id,
+    loggedAt: row.logged_at,
+    count: row.count,
   };
 }
 
@@ -124,10 +139,11 @@ export async function fetchUserData(userId: string): Promise<{
   plan: UserPlan | null;
   cravings: CravingLog[];
   checkIns: DailyCheckIn[];
+  puffs: PuffLog[];
 }> {
   const supabase = createClient();
 
-  const [planRes, cravingsRes, checkInsRes] = await Promise.all([
+  const [planRes, cravingsRes, checkInsRes, puffsRes] = await Promise.all([
     supabase.from("user_plans").select("*").eq("user_id", userId).maybeSingle(),
     supabase
       .from("craving_logs")
@@ -139,12 +155,18 @@ export async function fetchUserData(userId: string): Promise<{
       .select("*")
       .eq("user_id", userId)
       .order("checkin_date", { ascending: true }),
+    supabase
+      .from("puff_logs")
+      .select("*")
+      .eq("user_id", userId)
+      .order("logged_at", { ascending: true }),
   ]);
 
   return {
     plan: planRes.data ? toPlan(planRes.data as PlanRow) : null,
     cravings: (cravingsRes.data ?? []).map((r) => toCraving(r as CravingRow)),
     checkIns: (checkInsRes.data ?? []).map((r) => toCheckIn(r as CheckInRow)),
+    puffs: (puffsRes.data ?? []).map((r) => toPuff(r as PuffRow)),
   };
 }
 
@@ -209,12 +231,31 @@ export async function upsertCheckIn(
   return toCheckIn(data as CheckInRow);
 }
 
+export async function insertPuff(
+  userId: string,
+  count = 1,
+): Promise<PuffLog> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("puff_logs")
+    .insert({
+      user_id: userId,
+      count: Math.min(20, Math.max(1, count)),
+    })
+    .select()
+    .single();
+
+  if (error || !data) throw new Error(error?.message ?? "Failed to log puff");
+  return toPuff(data as PuffRow);
+}
+
 export async function syncLocalToCloud(
   userId: string,
   local: {
     plan: UserPlan | null;
     cravings: CravingLog[];
     checkIns: DailyCheckIn[];
+    puffs?: PuffLog[];
   },
 ): Promise<void> {
   const supabase = createClient();
@@ -243,6 +284,15 @@ export async function syncLocalToCloud(
         mood: c.mood,
         stayed_on_plan: c.stayedOnPlan,
         note: c.note ?? null,
+      })),
+    );
+  }
+  if ((local.puffs?.length ?? 0) > 0 && remote.puffs.length === 0) {
+    await supabase.from("puff_logs").insert(
+      (local.puffs ?? []).map((p) => ({
+        user_id: userId,
+        logged_at: p.loggedAt,
+        count: p.count,
       })),
     );
   }
