@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { MapCanvas } from "@/components/MapCanvas";
+import { JourneyMap } from "@/components/Maps";
 import { Logo, Wordmark } from "@/components/Logo";
 import {
   distanceMeters,
@@ -182,7 +182,11 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         <p className="mt-2 text-sm text-muted">
           {capsule.senderName} left this at {capsule.placeName}. It opens only when you arrive.
         </p>
-        <MapCanvas mode="path" className="mt-5 h-[280px]" />
+        <JourneyMap
+          user={userCoords}
+          target={capsule.coords}
+          className="mt-5 h-[280px]"
+        />
         <div className="mt-6 text-center">
           <p className="font-display text-4xl tracking-wide text-accent glow-text">
             {distance != null ? `${formatDistance(distance)} away` : "Locating…"}

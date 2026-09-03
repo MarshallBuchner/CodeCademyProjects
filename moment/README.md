@@ -63,9 +63,13 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Allow location when prompted. On desktop, use **Simulate arrival** or **Load demo Moments**.
 
-## Stack
+## Maps
 
-Next.js 16 · React 19 · Tailwind CSS 4 · TypeScript
+Live dark OpenStreetMap tiles (Leaflet). Pan to pin a place, search via Nominatim, journey line on locked Moments, overview pins on the Map tab. No map API key required.
+
+## Cloud sync
+
+Optional Supabase magic-link sync — see [SETUP.md](./SETUP.md). Without keys, guest/local mode still works.
 
 ## Next (post-MVP)
 

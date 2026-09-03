@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { MapCanvas } from "@/components/MapCanvas";
+import { JourneyMap } from "@/components/Maps";
 import { ShareMomentModal } from "@/components/ShareMomentModal";
 import { useMoment } from "@/context/MomentProvider";
 import { formatDistance } from "@/lib/geo";
@@ -15,6 +15,7 @@ export function LockedView() {
     simulateArrival,
     refreshLocation,
     locationError,
+    userCoords,
   } = useMoment();
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -49,7 +50,12 @@ export function LockedView() {
           : "This Moment opens when you arrive."}
       </h1>
 
-      <MapCanvas mode="path" className="mt-5 h-[300px]" />
+      <JourneyMap
+        user={userCoords}
+        target={activeMoment.coords}
+        className="mt-5 h-[300px]"
+        unlocked={false}
+      />
 
       <div className="mt-6 text-center">
         <p className="font-display text-4xl tracking-wide text-accent glow-text">

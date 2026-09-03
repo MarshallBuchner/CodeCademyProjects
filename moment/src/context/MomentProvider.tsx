@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -26,6 +27,15 @@ import {
   type MomentRecord,
 } from "@/lib/types";
 import { oneYearFromNowIso } from "@/lib/time";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import {
+  deleteCloudMoment,
+  fetchCloudMoments,
+  mergeMoments,
+  upsertCloudMoments,
+} from "@/lib/supabase/sync";
+
+type CloudUser = { id: string; email: string };
 
 type MomentContextValue = {
   ready: boolean;
@@ -55,6 +65,11 @@ type MomentContextValue = {
   continueTradition: (from: MomentRecord) => void;
   distanceToActive: number | null;
   canUnlockActive: boolean;
+  cloudUser: CloudUser | null;
+  cloudStatus: string;
+  signInWithEmail: (email: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  syncNow: () => Promise<void>;
 };
 
 const MomentContext = createContext<MomentContextValue | null>(null);
@@ -67,6 +82,9 @@ export function MomentProvider({ children }: { children: ReactNode }) {
   const [activeMomentId, setActiveMomentId] = useState<string | null>(null);
   const [userCoords, setUserCoords] = useState<Coords | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [cloudUser, setCloudUser] = useState<CloudUser | null>(null);
+  const [cloudStatus, setCloudStatus] = useState("Guest · local only");
+  const syncing = useRef(false);
 
   useEffect(() => {
     const stored = loadMoments();
@@ -79,6 +97,92 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     if (!ready) return;
     saveMoments(moments);
   }, [moments, ready]);
+
+  const syncNow = useCallback(async () => {
+    if (!cloudUser || !isSupabaseConfigured() || syncing.current) return;
+    syncing.current = true;
+    setCloudStatus("Syncing…");
+    try {
+      const local = loadMoments();
+      await upsertCloudMoments(cloudUser.id, local);
+      const remote = await fetchCloudMoments(cloudUser.id);
+      const merged = mergeMoments(local, remote);
+      setMoments(merged);
+      saveMoments(merged);
+      setCloudStatus("Synced just now");
+    } catch (e) {
+      setCloudStatus(
+        e instanceof Error ? `Sync error: ${e.message}` : "Sync failed",
+      );
+    } finally {
+      syncing.current = false;
+    }
+  }, [cloudUser]);
+
+  useEffect(() => {
+    if (!ready || !isSupabaseConfigured()) return;
+    let unsub: (() => void) | undefined;
+    void (async () => {
+      try {
+        const { createClient } = await import("@/lib/supabase/client");
+        const supabase = createClient();
+        const { data } = await supabase.auth.getSession();
+        const session = data.session;
+        if (session?.user) {
+          setCloudUser({
+            id: session.user.id,
+            email: session.user.email ?? "",
+          });
+          setCloudStatus("Signed in");
+        }
+        const { data: sub } = supabase.auth.onAuthStateChange(
+          async (_event, next) => {
+            if (next?.user) {
+              setCloudUser({
+                id: next.user.id,
+                email: next.user.email ?? "",
+              });
+              setCloudStatus("Signed in");
+            } else {
+              setCloudUser(null);
+              setCloudStatus("Guest · local only");
+            }
+          },
+        );
+        unsub = () => sub.subscription.unsubscribe();
+      } catch {
+        setCloudStatus("Cloud unavailable");
+      }
+    })();
+    return () => unsub?.();
+  }, [ready]);
+
+  useEffect(() => {
+    if (cloudUser) void syncNow();
+  }, [cloudUser, syncNow]);
+
+  const signInWithEmail = useCallback(async (email: string) => {
+    if (!isSupabaseConfigured()) {
+      throw new Error("Add Supabase keys in .env.local first (see SETUP.md)");
+    }
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    const redirectTo = `${window.location.origin}/auth/callback`;
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: redirectTo },
+    });
+    if (error) throw error;
+  }, []);
+
+  const signOut = useCallback(async () => {
+    if (!isSupabaseConfigured()) return;
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setCloudUser(null);
+    setCloudStatus("Guest · local only");
+  }, []);
 
   const setDraft = useCallback((patch: Partial<DraftMoment>) => {
     setDraftState((prev) => ({ ...prev, ...patch }));
@@ -171,12 +275,18 @@ export function MomentProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
       saved: false,
     };
-    setMoments((prev) => [record, ...prev]);
+    setMoments((prev) => {
+      const next = [record, ...prev];
+      if (cloudUser) {
+        void upsertCloudMoments(cloudUser.id, [record]);
+      }
+      return next;
+    });
     resetDraft();
     setActiveMomentId(record.id);
     setView("locked");
     return record;
-  }, [draft, resetDraft]);
+  }, [draft, resetDraft, cloudUser]);
 
   const openMoment = useCallback(
     (id: string) => {
@@ -230,11 +340,17 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const deleteMoment = useCallback((id: string) => {
-    setMoments((prev) => prev.filter((m) => m.id !== id));
-    setActiveMomentId(null);
-    setView("home");
-  }, []);
+  const deleteMoment = useCallback(
+    (id: string) => {
+      setMoments((prev) => prev.filter((m) => m.id !== id));
+      setActiveMomentId(null);
+      setView("home");
+      if (cloudUser) {
+        void deleteCloudMoment(cloudUser.id, id);
+      }
+    },
+    [cloudUser],
+  );
 
   const seedDemo = useCallback(async () => {
     const here =
@@ -354,6 +470,11 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     continueTradition,
     distanceToActive,
     canUnlockActive,
+    cloudUser,
+    cloudStatus,
+    signInWithEmail,
+    signOut,
+    syncNow,
   };
 
   return (

@@ -1,51 +1,91 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MapCanvas } from "@/components/MapCanvas";
+import { PlacePickerMap } from "@/components/Maps";
 import { useMoment } from "@/context/MomentProvider";
-import { offsetCoords } from "@/lib/geo";
 import { formatShortDate } from "@/lib/format";
+import { reverseGeocode, searchPlaces, type PlaceLookup } from "@/lib/geocode";
 import { compressImageFile, readFileAsDataUrl } from "@/lib/media";
 import { oneYearFromNowIso, toDatetimeLocalValue } from "@/lib/time";
-import type { MediaKind, MomentMedia } from "@/lib/types";
+import type { Coords, MediaKind, MomentMedia } from "@/lib/types";
 
 export function DropPlace() {
   const { draft, setDraft, setView, userCoords, refreshLocation, locationError } =
     useMoment();
   const [query, setQuery] = useState(draft.placeName || "");
+  const [results, setResults] = useState<PlaceLookup[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [labelBusy, setLabelBusy] = useState(false);
+  const geocodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const mapCenter = draft.coords ?? userCoords ?? { lat: 42.3149, lng: -83.0364 };
 
   useEffect(() => {
-    void refreshLocation();
+    void refreshLocation().then((coords) => {
+      if (coords && !draft.coords) {
+        setDraft({
+          coords,
+          placeName: draft.placeName || "Current location",
+          placeSubtitle: draft.placeSubtitle || "Where you are right now",
+        });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshLocation]);
 
-  const presets = [
-    {
-      name: "Riverside Viewpoint",
-      subtitle: "123 River Rd",
-      offset: [1200, 300] as const,
-    },
-    {
-      name: "Harbor Pier",
-      subtitle: "East boardwalk",
-      offset: [-800, 1500] as const,
-    },
-    {
-      name: "Current location",
-      subtitle: "Where you are right now",
-      offset: [0, 0] as const,
-    },
-  ];
+  function scheduleLabel(coords: Coords) {
+    if (geocodeTimer.current) clearTimeout(geocodeTimer.current);
+    geocodeTimer.current = setTimeout(() => {
+      setLabelBusy(true);
+      void reverseGeocode(coords).then((place) => {
+        setDraft({
+          coords: place.coords,
+          placeName: place.name,
+          placeSubtitle: place.subtitle,
+        });
+        setQuery(place.name);
+        setLabelBusy(false);
+      });
+    }, 450);
+  }
 
-  function pick(
-    name: string,
-    subtitle: string,
-    north: number,
-    east: number,
-  ) {
-    const base = userCoords ?? { lat: 42.3149, lng: -83.0364 };
-    const coords = offsetCoords(base, north, east);
-    setDraft({ placeName: name, placeSubtitle: subtitle, coords });
-    setQuery(name);
+  function onMapMoved(coords: Coords) {
+    setDraft({ coords });
+    scheduleLabel(coords);
+  }
+
+  function onSearchChange(value: string) {
+    setQuery(value);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      if (value.trim().length < 2) {
+        setResults([]);
+        return;
+      }
+      setSearching(true);
+      void searchPlaces(value, userCoords).then((items) => {
+        setResults(items);
+        setSearching(false);
+      });
+    }, 350);
+  }
+
+  function applyPlace(place: PlaceLookup) {
+    setDraft({
+      coords: place.coords,
+      placeName: place.name,
+      placeSubtitle: place.subtitle,
+    });
+    setQuery(place.name);
+    setResults([]);
+  }
+
+  async function useMyLocation() {
+    const coords = await refreshLocation();
+    if (!coords) return;
+    setDraft({ coords });
+    scheduleLabel(coords);
   }
 
   return (
@@ -59,11 +99,12 @@ export function DropPlace() {
       </button>
       <p className="text-xs tracking-[0.22em] text-accent uppercase">Drop a Moment</p>
       <h1 className="font-display mt-1 text-3xl tracking-wide">Choose a place</h1>
+      <p className="mt-1 text-sm text-muted">Pan the map — the pin stays in the center.</p>
 
       <div className="relative mt-5">
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search a place…"
           className="field pl-10"
         />
@@ -72,37 +113,53 @@ export function DropPlace() {
         </span>
       </div>
 
-      <MapCanvas mode="pin" className="mt-4 h-[260px]" label={draft.placeName || "Pin a place"} />
+      {results.length > 0 && (
+        <ul className="mt-2 max-h-40 overflow-auto rounded-2xl border border-white/10 bg-card">
+          {results.map((r) => (
+            <li key={`${r.name}-${r.coords.lat}-${r.coords.lng}`}>
+              <button
+                type="button"
+                className="w-full border-b border-white/5 px-4 py-3 text-left last:border-0"
+                onClick={() => applyPlace(r)}
+              >
+                <span className="block text-sm font-medium">{r.name}</span>
+                <span className="text-xs text-muted">{r.subtitle}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {searching && <p className="mt-2 text-xs text-muted">Searching…</p>}
+
+      <PlacePickerMap
+        center={mapCenter}
+        className="mt-4 h-[300px]"
+        onCenterChange={onMapMoved}
+      />
+
+      <div className="mt-3 flex gap-2">
+        <button type="button" className="btn-ghost flex-1 text-sm" onClick={() => void useMyLocation()}>
+          Use my location
+        </button>
+      </div>
 
       {locationError && (
-        <p className="mt-3 text-xs text-amber-300/90">
-          {locationError}. You can still pick a preset place for the prototype.
+        <p className="mt-2 text-xs text-amber-300/90">
+          {locationError}. You can still pan/search the map.
         </p>
       )}
 
-      <ul className="mt-4 flex flex-col gap-2">
-        {presets.map((p) => (
-          <li key={p.name}>
-            <button
-              type="button"
-              onClick={() => pick(p.name, p.subtitle, p.offset[0], p.offset[1])}
-              className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
-                draft.placeName === p.name
-                  ? "border-accent/50 bg-accent/10"
-                  : "border-white/8 bg-card"
-              }`}
-            >
-              <span className="block text-sm font-medium">{p.name}</span>
-              <span className="text-xs text-muted">{p.subtitle}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-
       <div className="mt-auto pt-6">
         <div className="mb-3 rounded-2xl border border-white/8 bg-card/80 px-4 py-3">
-          <p className="text-sm font-medium">{draft.placeName || "No place selected"}</p>
-          <p className="text-xs text-muted">{draft.placeSubtitle || "Pick a pin above"}</p>
+          <p className="text-sm font-medium">
+            {labelBusy ? "Finding place name…" : draft.placeName || "No place selected"}
+          </p>
+          <p className="text-xs text-muted">
+            {draft.placeSubtitle ||
+              (draft.coords
+                ? `${draft.coords.lat.toFixed(5)}, ${draft.coords.lng.toFixed(5)}`
+                : "Pan the map to set a pin")}
+          </p>
         </div>
         <button
           type="button"

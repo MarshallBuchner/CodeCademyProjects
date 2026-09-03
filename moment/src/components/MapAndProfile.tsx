@@ -2,20 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
-import { MapCanvas } from "@/components/MapCanvas";
+import { MomentsOverviewMap } from "@/components/Maps";
 import { useMoment } from "@/context/MomentProvider";
 import { distanceMeters, formatDistance } from "@/lib/geo";
 import { loadOutbox, type OutboundShare } from "@/lib/share";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export function MapView() {
-  const { moments, userCoords, openMoment, startDrop } = useMoment();
+  const { moments, userCoords, openMoment, startDrop, refreshLocation } =
+    useMoment();
+
+  useEffect(() => {
+    void refreshLocation();
+  }, [refreshLocation]);
 
   return (
     <div className="flex min-h-dvh flex-col">
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pb-8 pt-8">
         <h1 className="font-display text-3xl tracking-wide">Map</h1>
-        <p className="mt-1 text-sm text-muted">Your Moments on the map.</p>
-        <MapCanvas mode="pin" className="mt-5 h-[340px]" />
+        <p className="mt-1 text-sm text-muted">
+          Your Moments on a live map — tap a pin to open.
+        </p>
+        <MomentsOverviewMap
+          user={userCoords}
+          points={moments.map((m) => ({
+            id: m.id,
+            coords: m.coords,
+            unlocked: Boolean(m.unlockedAt),
+          }))}
+          className="mt-5 h-[340px]"
+          onSelect={openMoment}
+        />
         <ul className="mt-5 flex flex-col gap-2">
           {moments.map((m) => {
             const dist =
@@ -53,20 +70,51 @@ export function MapView() {
 }
 
 export function ProfileView() {
-  const { moments, setView, locationError, refreshLocation, userCoords } =
-    useMoment();
+  const {
+    moments,
+    setView,
+    locationError,
+    refreshLocation,
+    userCoords,
+    cloudUser,
+    cloudStatus,
+    signInWithEmail,
+    signOut,
+    syncNow,
+  } = useMoment();
   const unlocked = moments.filter((m) => m.unlockedAt).length;
   const [outbox, setOutbox] = useState<OutboundShare[]>([]);
+  const [email, setEmail] = useState("");
+  const [authMsg, setAuthMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const cloudReady = isSupabaseConfigured();
 
   useEffect(() => {
     setOutbox(loadOutbox());
   }, []);
 
+  async function onSignIn() {
+    setBusy(true);
+    setAuthMsg(null);
+    try {
+      await signInWithEmail(email);
+      setAuthMsg("Check your email for a magic link.");
+    } catch (e) {
+      setAuthMsg(e instanceof Error ? e.message : "Sign-in failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="flex min-h-dvh flex-col">
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pb-8 pt-8">
         <h1 className="font-display text-3xl tracking-wide">Profile</h1>
-        <p className="mt-1 text-sm text-muted">Private by default. Guest mode on this device.</p>
+        <p className="mt-1 text-sm text-muted">
+          {cloudUser
+            ? `Signed in · ${cloudUser.email}`
+            : "Guest mode on this device — enable cloud sync below."}
+        </p>
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <div className="rounded-[22px] border border-white/8 bg-card p-4">
@@ -77,6 +125,61 @@ export function ProfileView() {
             <p className="text-2xl font-semibold text-accent">{unlocked}</p>
             <p className="mt-1 text-xs text-muted">Unlocked</p>
           </div>
+        </div>
+
+        <div className="mt-5 rounded-[22px] border border-white/8 bg-card p-4">
+          <p className="text-sm font-medium">Cloud sync</p>
+          {!cloudReady ? (
+            <p className="mt-2 text-xs leading-relaxed text-muted">
+              Add Supabase keys to <code className="text-accent">.env.local</code>{" "}
+              (see SETUP.md). Until then everything stays on this phone — maps
+              still work fully.
+            </p>
+          ) : cloudUser ? (
+            <>
+              <p className="mt-2 text-xs text-muted">
+                Status: {cloudStatus}
+              </p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  className="btn-ghost flex-1 text-sm"
+                  onClick={() => void syncNow()}
+                >
+                  Sync now
+                </button>
+                <button
+                  type="button"
+                  className="btn-ghost flex-1 text-sm"
+                  onClick={() => void signOut()}
+                >
+                  Sign out
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-xs text-muted">
+                Magic-link sign-in syncs Moments across devices.
+              </p>
+              <input
+                className="field mt-3"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@email.com"
+              />
+              <button
+                type="button"
+                className="btn-primary mt-3 w-full"
+                disabled={busy || !email.trim()}
+                onClick={() => void onSignIn()}
+              >
+                {busy ? "Sending…" : "Email me a magic link"}
+              </button>
+              {authMsg && <p className="mt-2 text-xs text-accent">{authMsg}</p>}
+            </>
+          )}
         </div>
 
         <div className="mt-5 rounded-[22px] border border-white/8 bg-card p-4">
