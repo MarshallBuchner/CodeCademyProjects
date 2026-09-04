@@ -51,6 +51,12 @@ Access control for this MVP:
 - Geofence still required to reveal content
 - Capsule payload rides in the URL hash (works cross-device with no backend)
 
+## Launch (GitHub + Vercel)
+
+See **[DEPLOY.md](./DEPLOY.md)** — merge PR → import repo on Vercel with **Root Directory = `moment`**.
+
+Guest mode ships live with no backend. Optional Supabase sync: [SETUP.md](./SETUP.md).
+
 ## Run locally
 
 ```bash
@@ -73,10 +79,10 @@ Optional Supabase magic-link sync — see [SETUP.md](./SETUP.md). Without keys, 
 
 ## Next (post-MVP)
 
-- Real map tiles (Mapbox dark style)
-- Shared / collaborative capsules
-- Auth + cloud sync (Supabase)
+- Wire Supabase Storage for large video uploads
 - Push when a shared Moment is nearby
+- Collaborative / team Moments
+- Custom domain + App Store / Play wrap later
 - One-time “event capsule” purchases from your monetization notes
 
 ## Positioning notes from your screenshots

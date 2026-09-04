@@ -1,11 +1,13 @@
 # MOMENT Setup
 
+**Going live?** See [DEPLOY.md](./DEPLOY.md) for Vercel + GitHub.
+
 ## Maps (already live)
 
 Real dark OpenStreetMap tiles via Leaflet + Nominatim search/reverse geocode.
 No API key required. Works in guest mode.
 
-## Cloud sync (Supabase) — optional until you launch
+## Cloud sync (Supabase) — optional
 
 Without keys the app keeps working on-device. With keys, magic-link sign-in syncs Moments across phones.
 
