@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MOMENT</string>
+    <string name="title_activity_main">MOMENT</string>
+    <string name="package_name">app.moment.leave</string>
+    <string name="custom_url_scheme">app.moment.leave</string>
+</resources>

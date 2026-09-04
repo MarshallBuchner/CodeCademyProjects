@@ -1,0 +1,20 @@
+{
+  "name": "store-apps",
+  "private": true,
+  "description": "Capacitor native shells for QuitCurve, MOMENT, and POWR",
+  "scripts": {
+    "sync:quitcurve": "npm run sync --workspace=@store/quitcurve",
+    "sync:moment": "npm run sync --workspace=@store/moment",
+    "sync:powr": "npm run sync --workspace=@store/powr",
+    "sync:all": "npm run sync:quitcurve && npm run sync:moment && npm run sync:powr",
+    "open:android:quitcurve": "npm run open:android --workspace=@store/quitcurve",
+    "open:android:moment": "npm run open:android --workspace=@store/moment",
+    "open:android:powr": "npm run open:android --workspace=@store/powr",
+    "open:ios:quitcurve": "npm run open:ios --workspace=@store/quitcurve",
+    "open:ios:moment": "npm run open:ios --workspace=@store/moment",
+    "open:ios:powr": "npm run open:ios --workspace=@store/powr"
+  },
+  "workspaces": [
+    "apps/*"
+  ]
+}
