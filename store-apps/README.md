@@ -8,11 +8,13 @@ Fastest path to **real App Store + Google Play** listings: Capacitor native shel
 | **MOMENT** | `app.moment.leave` | Set after Vercel deploy (replace `https://YOUR-MOMENT.vercel.app`) |
 | **POWR** | `app.powr.hockey` | https://powr-mvp.vercel.app (swap to this repo’s `powr/` deploy once live) |
 
-### POWR accounts (in progress in `powr/`)
+### POWR accounts (real `powr-mvp` source + auth)
 
-POWR now includes magic-link auth + saved assessments (Supabase), guest mode,
-history, and progress. After you create a Supabase project and deploy `powr/`
-to Vercel, update this shell’s `server.url` and run `npx cap sync`.
+`powr/` is now based on the public [`MarshallBuchner/powr-mvp`](https://github.com/MarshallBuchner/powr-mvp) app, plus:
+magic-link accounts, saved assessments, history, progress, and `/privacy`.
+
+This agent cannot push directly to `powr-mvp` yet (GitHub App write access is only on CodeCademyProjects).
+To land accounts on the real POWR repo: grant Cursor write access to `powr-mvp`, or copy `powr/` into that repo.
 
 
 ## What you do next (order)

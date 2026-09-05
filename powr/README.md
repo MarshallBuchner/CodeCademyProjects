@@ -1,33 +1,38 @@
 # POWR
 
-AI hockey development — upload a skating clip, get a coaching report, **save assessments to an account**, and track progress over time.
+> **THE HOME OF HOCKEY DEVELOPMENT**
 
-## Features
+AI hockey development — upload a skating clip, get a coaching report, **save
+assessments to an account**, and track progress over time.
 
-- Guest assessments (no account required for first run)
-- Magic-link accounts via Supabase (QuitCurve pattern)
-- Saved assessment history + progress trends
-- `/privacy` for App Store / Play
-- Capacitor shell ready under `store-apps/apps/powr`
+## Status
 
-## Quick start
+- ✅ Landing + upload + AI analysis + report
+- ✅ Sample assessment / share links
+- ✅ Magic-link accounts (Supabase)
+- ✅ Saved assessment history + progress
+- ✅ Privacy page (store-ready)
+- ⏳ Coach platform / Stripe
+
+## Tech
+
+Next.js App Router · React · TypeScript · OpenAI · Supabase · Vercel
+
+## Setup
+
+Accounts + cloud sync: **[SETUP.md](./SETUP.md)**
 
 ```bash
-cd powr
 npm install
-cp .env.example .env.local   # optional — enables cloud accounts
+cp .env.example .env.local
 npm run dev
 ```
 
-Without Supabase keys, everything works in **guest/local** mode.
+Without Supabase keys, guest/local mode still works.
 
-With Supabase: follow **[SETUP.md](./SETUP.md)**.
+## Mission
 
-## Deploy
+Become **the home of hockey development** — measurable player improvement and
+tools coaches can trust.
 
-1. Push this `powr/` app (or deploy from monorepo with Root Directory = `powr`)
-2. Add Supabase env vars on Vercel
-3. Point `store-apps/apps/powr/capacitor.config.ts` `server.url` at the live host
-4. Open Xcode / Android Studio from `store-apps` and submit
-
-Live MVP reference (previous prototype): `https://powr-mvp.vercel.app`
+© 2026 POWR

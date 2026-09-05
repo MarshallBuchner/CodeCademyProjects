@@ -1,5 +1,5 @@
--- POWR Supabase schema
--- Run in SQL Editor after creating a Supabase project named `powr`
+-- POWR accounts + saved assessments
+-- Run in Supabase SQL Editor after creating project `powr`
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
@@ -11,16 +11,13 @@ create table if not exists public.profiles (
 alter table public.profiles enable row level security;
 
 create policy "Users can view own profile"
-  on public.profiles for select
-  using (auth.uid() = id);
+  on public.profiles for select using (auth.uid() = id);
 
 create policy "Users can insert own profile"
-  on public.profiles for insert
-  with check (auth.uid() = id);
+  on public.profiles for insert with check (auth.uid() = id);
 
 create policy "Users can update own profile"
-  on public.profiles for update
-  using (auth.uid() = id);
+  on public.profiles for update using (auth.uid() = id);
 
 create table if not exists public.assessments (
   id uuid primary key default gen_random_uuid(),
@@ -55,8 +52,8 @@ begin
   insert into public.profiles (id, email, name)
   values (
     new.id,
-    new.email,
-    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1))
+    coalesce(new.email, ''),
+    coalesce(new.raw_user_meta_data->>'name', split_part(coalesce(new.email, 'athlete'), '@', 1))
   );
   return new;
 end;
