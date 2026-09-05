@@ -50,8 +50,11 @@ export const metadata: Metadata = {
     title: "QuitCurve",
   },
   icons: {
-    icon: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
-    apple: [{ url: "/icon-180.png", sizes: "180x180", type: "image/png" }],
+    icon: [
+      { url: "/icons/q-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/q-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/q-180.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
