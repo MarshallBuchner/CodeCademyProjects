@@ -32,6 +32,10 @@ Your live URL will look like `https://moment-….vercel.app`.
 
 On iPhone Safari: Share → **Add to Home Screen**.
 
+## 3b. App Store / Play (native shells)
+
+Capacitor store shells live in [`store-apps/`](../store-apps/). After this Vercel URL is live, paste it into `store-apps/apps/moment/capacitor.config.ts` → `server.url`, then follow [`store-apps/LAUNCH_CHECKLIST.md`](../store-apps/LAUNCH_CHECKLIST.md).
+
 ## 4. Optional: Supabase cloud sync
 
 See [SETUP.md](./SETUP.md). After you have a Vercel URL:
