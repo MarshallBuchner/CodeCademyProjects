@@ -44,14 +44,15 @@ Redeploy after adding env vars.
 
 ## 3. Cron schedule
 
-`vercel.json` schedules:
+`vercel.json` schedules (Hobby-compatible — once daily):
 
 ```json
-{ "path": "/api/cron/reminders", "schedule": "0 * * * *" }
+{ "path": "/api/cron/reminders", "schedule": "0 23 * * *" }
 ```
 
-- Runs **hourly** so each user’s preferred local hour can match
-- **Vercel Hobby** only allows **1 cron/day** — upgrade to Pro for hourly, or change the schedule to once daily (e.g. `"0 18 * * *"`) knowing only users whose local hour matches that UTC run will get reminders that day
+- Runs **once daily at 23:00 UTC** (~6–7pm Eastern) so Hobby deploys succeed
+- Only users whose **preferred local hour** matches that run’s local hour get a reminder that day
+- Upgrade to **Vercel Pro** and change schedule to `"0 * * * *"` for hourly matching of every timezone
 - Cron requests include `Authorization: Bearer <CRON_SECRET>` automatically when `CRON_SECRET` is set
 
 ## 4. Manual test
