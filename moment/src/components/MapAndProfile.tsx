@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { MomentsOverviewMap } from "@/components/Maps";
@@ -220,6 +221,23 @@ export function ProfileView() {
               ))}
             </ul>
           )}
+        </div>
+
+        <div className="mt-5 flex flex-col gap-2 text-sm">
+          <Link href="/account" className="text-accent">
+            Account settings →
+          </Link>
+          <div className="flex flex-wrap gap-4 text-xs text-muted">
+            <Link href="/privacy" className="hover:text-accent">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-accent">
+              Terms
+            </Link>
+            <Link href="/support" className="hover:text-accent">
+              Support
+            </Link>
+          </div>
         </div>
 
         <button

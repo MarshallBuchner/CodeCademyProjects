@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Logo, Wordmark } from "@/components/Logo";
 import { useMoment } from "@/context/MomentProvider";
 
@@ -137,6 +138,17 @@ export function Welcome() {
           <p className="mt-6 text-[10px] tracking-[0.28em] text-muted/80 uppercase">
             Be present. Leave legacy. Meet yourself there.
           </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-4 text-xs text-muted">
+            <Link href="/privacy" className="hover:text-accent">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-accent">
+              Terms
+            </Link>
+            <Link href="/support" className="hover:text-accent">
+              Support
+            </Link>
+          </div>
         </div>
       </section>
     </main>

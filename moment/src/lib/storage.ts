@@ -40,6 +40,15 @@ export function markWelcomeSeen() {
   localStorage.setItem(WELCOME_KEY, "1");
 }
 
+/** Wipe guest/local MOMENT data on this device. */
+export function clearLocalMomentData() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(KEY);
+  localStorage.removeItem(WELCOME_KEY);
+  localStorage.removeItem("moment.shares.outbox.v1");
+  localStorage.removeItem("moment.shares.inbox.v1");
+}
+
 export function uid(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
