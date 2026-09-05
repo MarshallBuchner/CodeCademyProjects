@@ -1,12 +1,14 @@
 "use client";
 
 import { BottomNav } from "@/components/BottomNav";
+import { MomentOverflowMenu } from "@/components/MomentOverflowMenu";
 import { useMoment } from "@/context/MomentProvider";
 import { distanceMeters, formatDistance } from "@/lib/geo";
 import { formatShortDate, relativeTime } from "@/lib/format";
 
 export function Home() {
-  const { moments, startDrop, openMoment, userCoords, seedDemo } = useMoment();
+  const { moments, startDrop, openMoment, userCoords, seedDemo, deleteMoment } =
+    useMoment();
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -55,11 +57,14 @@ export function Home() {
                   : null;
               const unlocked = Boolean(m.unlockedAt);
               return (
-                <li key={m.id}>
+                <li
+                  key={m.id}
+                  className="flex items-center gap-1 rounded-[22px] border border-white/8 bg-card/80 p-2.5 pr-1.5 transition hover:border-accent/35 hover:bg-card"
+                >
                   <button
                     type="button"
                     onClick={() => openMoment(m.id)}
-                    className="group flex w-full items-center gap-4 rounded-[22px] border border-white/8 bg-card/80 p-3.5 text-left transition hover:border-accent/35 hover:bg-card"
+                    className="group flex min-w-0 flex-1 items-center gap-3 p-1 text-left"
                   >
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-surface">
                       {m.media.find((x) => x.kind === "photo") ? (
@@ -124,8 +129,11 @@ export function Home() {
                               : "Location locked"}
                       </p>
                     </div>
-                    <span className="text-muted/60 group-hover:text-accent">›</span>
                   </button>
+                  <MomentOverflowMenu
+                    momentTitle={m.title}
+                    onDelete={() => deleteMoment(m.id)}
+                  />
                 </li>
               );
             })}

@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { JourneyMap } from "@/components/Maps";
+import { MomentOverflowMenu } from "@/components/MomentOverflowMenu";
 import { ShareMomentModal } from "@/components/ShareMomentModal";
 import { useMoment } from "@/context/MomentProvider";
 import { formatDistance } from "@/lib/geo";
@@ -16,6 +17,7 @@ export function LockedView() {
     refreshLocation,
     locationError,
     userCoords,
+    deleteMoment,
   } = useMoment();
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -34,13 +36,19 @@ export function LockedView() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-8 pt-6">
-      <button
-        type="button"
-        className="mb-4 flex items-center gap-2 text-sm text-muted"
-        onClick={() => setView("home")}
-      >
-        ← Your Moments
-      </button>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          className="flex items-center gap-2 text-sm text-muted"
+          onClick={() => setView("home")}
+        >
+          ← Your Moments
+        </button>
+        <MomentOverflowMenu
+          momentTitle={activeMoment.title}
+          onDelete={() => deleteMoment(activeMoment.id)}
+        />
+      </div>
 
       {activeMoment.annualTradition ? (
         <span className="inline-flex self-start rounded-full border border-accent/45 bg-accent/15 px-3 py-1 text-[11px] tracking-[0.2em] text-accent uppercase">
@@ -126,7 +134,13 @@ export function LockedView() {
 }
 
 export function UnlockedView() {
-  const { activeMoment, setView, saveMomentKeep, continueTradition } = useMoment();
+  const {
+    activeMoment,
+    setView,
+    saveMomentKeep,
+    continueTradition,
+    deleteMoment,
+  } = useMoment();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -167,13 +181,19 @@ export function UnlockedView() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-8 pt-6">
-      <button
-        type="button"
-        className="mb-4 flex items-center gap-2 text-sm text-muted"
-        onClick={() => setView("home")}
-      >
-        ← Your Moments
-      </button>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          className="flex items-center gap-2 text-sm text-muted"
+          onClick={() => setView("home")}
+        >
+          ← Your Moments
+        </button>
+        <MomentOverflowMenu
+          momentTitle={activeMoment.title}
+          onDelete={() => deleteMoment(activeMoment.id)}
+        />
+      </div>
 
       {activeMoment.annualTradition ? (
         <span className="inline-flex self-start rounded-full border border-accent/45 bg-accent/15 px-3 py-1 text-[11px] tracking-[0.2em] text-accent uppercase">
