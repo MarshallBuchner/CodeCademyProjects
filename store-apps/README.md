@@ -22,7 +22,7 @@ to Vercel, update this shell’s `server.url` and run `npx cap sync`.
 3. **Privacy URLs** (required by both stores):
    - QuitCurve: already at `/privacy`
    - MOMENT: `/privacy` added in this PR — live after deploy
-   - POWR: add `/privacy` on the POWR MVP (or host a static page) before submit
+   - POWR: `/privacy` included in new `powr/` app (deploy that host, or keep MVP URL in sync)
 4. **Icons & screenshots** — replace default Capacitor icons; capture 6.7" + 6.1" iPhone and Play phone screenshots.
 5. **On a Mac with Xcode** (iOS) and Android Studio (Play):
    ```bash
