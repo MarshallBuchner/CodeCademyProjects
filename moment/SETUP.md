@@ -30,4 +30,12 @@ Authentication → URL Configuration:
 ### 4. Sign in
 Profile → enter email → magic link → Moments sync.
 
+### 5. Email + account deletion (launch polish)
+See **[AUTH.md](./AUTH.md)** for:
+- Resend SMTP (so magic links aren’t rate-limited)
+- Magic Link email template (`token_hash`)
+- `SUPABASE_SERVICE_ROLE_KEY` on Vercel for **Delete account**
+
+Legal pages: `/privacy`, `/terms`, `/support`, `/account`
+
 **Note:** Very large videos may stay device-local until you add a Storage bucket; notes/photos sync fine.
