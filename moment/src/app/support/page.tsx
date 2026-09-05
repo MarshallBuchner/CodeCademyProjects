@@ -33,19 +33,25 @@ export default function SupportPage() {
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted">
             <li>
               <strong className="text-foreground">Magic link:</strong> request
-              the link in Safari (or the browser you use for MOMENT), then open
-              it in that same browser. Prefer Gmail in the browser over the Mail
-              app. Old links expire after one use — request a fresh one.
+              the link in the same browser or app you use for MOMENT, then open
+              it there. On iPhone, prefer opening Gmail in Safari (or stay
+              inside the MOMENT app WebView) over the Mail app. Old links expire
+              after one use — request a fresh one.
             </li>
             <li>
               <strong className="text-foreground">Unlock:</strong> allow location
               when prompted, stand near the drop pin, or use Simulate arrival on
-              desktop demos.
+              demo Moments.
             </li>
             <li>
-              <strong className="text-foreground">Home screen:</strong> Safari →
-              Share → Add to Home Screen. If the icon looks stale, remove it and
-              add again.
+              <strong className="text-foreground">Native / App Store app:</strong>{" "}
+              location unlocks Moments at the drop place; camera, mic, and
+              photos are only used when you attach Moment media.
+            </li>
+            <li>
+              <strong className="text-foreground">Home screen (PWA):</strong>{" "}
+              Safari → Share → Add to Home Screen. If the icon looks stale,
+              remove it and add again.
             </li>
             <li>
               <strong className="text-foreground">Delete account:</strong>{" "}
@@ -55,6 +61,21 @@ export default function SupportPage() {
               .
             </li>
           </ul>
+        </div>
+
+        <div className="rounded-[22px] border border-white/10 bg-card p-5">
+          <h2 className="text-base font-semibold text-foreground">
+            Report abuse
+          </h2>
+          <p className="mt-2 text-sm text-muted">
+            Moments are private, but if you receive harmful content or someone
+            is misusing MOMENT, email{" "}
+            <a href={SUPPORT_MAILTO} className="text-accent">
+              {SUPPORT_EMAIL}
+            </a>{" "}
+            with the share link or details. We review reports and may remove
+            content or suspend access.
+          </p>
         </div>
 
         <div className="rounded-[22px] border border-white/10 bg-card p-5">

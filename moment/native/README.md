@@ -14,20 +14,19 @@ Override with `MOMENT_SERVER_URL` when running Capacitor CLI if needed.
 cd moment/native
 npm install
 npx cap add ios
-npx cap add android
+npx cap add android   # optional; set applicationId to app.moment.android
 npx cap sync
 ```
+
+`capacitor.config.ts` uses `appId: "app.moment.ios"` (matches App Store Connect).  
+After `cap add android`, change Android `applicationId` / namespace to **`app.moment.android`**.
 
 ### iOS
 1. `npx cap open ios`
 2. In Xcode → Signing & Capabilities → your Team
 3. Bundle ID: `app.moment.ios`
 4. Display name: MOMENT
-5. Add usage descriptions (Info.plist):
-   - **Location When In Use** — “MOMENT uses your location to unlock Moments at the place they were left.”
-   - **Camera** — “MOMENT uses the camera to capture photos and video for Moments.”
-   - **Microphone** — “MOMENT uses the microphone for voice notes.”
-   - **Photo Library** — “MOMENT lets you attach photos and videos from your library.”
+5. Add usage descriptions — see **`Info.plist.snippets.md`**
 6. Product → Archive → Distribute → TestFlight
 
 ### Android
@@ -41,13 +40,20 @@ npx cap sync
 The shell loads the live site — most web deploys need **no new store build**.  
 Re-run `npx cap sync` only when changing native config, icons, or splash.
 
-## Icons
+## Icons & splash
 
-Copy from `../public/icons/`:
-- `moment-1024.png` → App Store icon
-- `moment-180.png` / `moment-192.png` / `moment-512.png` → adaptive / PWA
+Source assets in `native/assets/`:
+- `icon.png` — 1024×1024 RGB
+- `splash.png` — 2732×2732 RGB (`#050608` background)
 
 ```bash
-npx @capacitor/assets generate --iconBackgroundColor '#050608' --iconBackgroundColorDark '#050608'
+npm run assets
 ```
-(after placing source icon in `native/assets/icon.png`)
+
+Or:
+
+```bash
+npx @capacitor/assets generate --iconBackgroundColor '#050608' --iconBackgroundColorDark '#050608' --splashBackgroundColor '#050608' --splashBackgroundColorDark '#050608'
+```
+
+Also available under `../public/icons/` for the PWA.
