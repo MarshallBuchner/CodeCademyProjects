@@ -6,7 +6,14 @@ Fastest path to **real App Store + Google Play** listings: Capacitor native shel
 |-----|-----------|----------|
 | **QuitCurve** | `app.quitcurve.mobile` | https://www.quitcurve.app |
 | **MOMENT** | `app.moment.leave` | Set after Vercel deploy (replace `https://YOUR-MOMENT.vercel.app`) |
-| **POWR** | `app.powr.hockey` | https://powr-mvp.vercel.app |
+| **POWR** | `app.powr.hockey` | https://powr-mvp.vercel.app (swap to this repo’s `powr/` deploy once live) |
+
+### POWR accounts (in progress in `powr/`)
+
+POWR now includes magic-link auth + saved assessments (Supabase), guest mode,
+history, and progress. After you create a Supabase project and deploy `powr/`
+to Vercel, update this shell’s `server.url` and run `npx cap sync`.
+
 
 ## What you do next (order)
 
