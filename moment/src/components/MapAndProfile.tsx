@@ -4,14 +4,21 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { MomentsOverviewMap } from "@/components/Maps";
+import { MomentOverflowMenu } from "@/components/MomentOverflowMenu";
 import { useMoment } from "@/context/MomentProvider";
 import { distanceMeters, formatDistance } from "@/lib/geo";
 import { loadOutbox, type OutboundShare } from "@/lib/share";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export function MapView() {
-  const { moments, userCoords, openMoment, startDrop, refreshLocation } =
-    useMoment();
+  const {
+    moments,
+    userCoords,
+    openMoment,
+    startDrop,
+    refreshLocation,
+    deleteMoment,
+  } = useMoment();
 
   useEffect(() => {
     void refreshLocation();
@@ -39,17 +46,22 @@ export function MapView() {
             const dist =
               userCoords != null ? distanceMeters(userCoords, m.coords) : null;
             return (
-              <li key={m.id}>
+              <li
+                key={m.id}
+                className="flex items-center gap-1 rounded-2xl border border-white/8 bg-card pr-1.5"
+              >
                 <button
                   type="button"
                   onClick={() => openMoment(m.id)}
-                  className="flex w-full items-center justify-between rounded-2xl border border-white/8 bg-card px-4 py-3 text-left"
+                  className="flex min-w-0 flex-1 items-center justify-between px-4 py-3 text-left"
                 >
-                  <span>
-                    <span className="block text-sm font-medium">{m.title}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">
+                      {m.title}
+                    </span>
                     <span className="text-xs text-muted">{m.placeName}</span>
                   </span>
-                  <span className="text-xs text-accent">
+                  <span className="ml-2 shrink-0 text-xs text-accent">
                     {m.unlockedAt
                       ? "Unlocked"
                       : dist != null
@@ -57,6 +69,10 @@ export function MapView() {
                         : "Locked"}
                   </span>
                 </button>
+                <MomentOverflowMenu
+                  momentTitle={m.title}
+                  onDelete={() => deleteMoment(m.id)}
+                />
               </li>
             );
           })}
