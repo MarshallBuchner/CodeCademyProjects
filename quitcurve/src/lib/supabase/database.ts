@@ -111,12 +111,22 @@ export async function getSessionUser(): Promise<UserProfile | null> {
   };
 }
 
+function authCallbackUrl(): string {
+  // Always land on the canonical www host in production so cookies stick.
+  if (typeof window === "undefined") return "https://www.quitcurve.app/auth/callback";
+  const host = window.location.hostname;
+  if (host === "quitcurve.app" || host === "www.quitcurve.app") {
+    return "https://www.quitcurve.app/auth/callback?next=/dashboard";
+  }
+  return `${window.location.origin}/auth/callback?next=/dashboard`;
+}
+
 export async function sendMagicLink(
   email: string,
   name?: string,
 ): Promise<{ error?: string }> {
   const supabase = createClient();
-  const redirectTo = `${window.location.origin}/auth/callback`;
+  const redirectTo = authCallbackUrl();
 
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim().toLowerCase(),
