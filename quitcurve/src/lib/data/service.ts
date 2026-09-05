@@ -106,6 +106,26 @@ export async function logout(): Promise<void> {
   local.signOut();
 }
 
+/** Delete cloud account (if signed in) and wipe local QuitCurve data. */
+export async function deleteAccount(): Promise<{ error?: string }> {
+  if (usingCloudSync()) {
+    const user = await cloud.getSessionUser();
+    if (user) {
+      const res = await fetch("/api/account/delete", { method: "POST" });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        return {
+          error:
+            body.error ??
+            "Could not delete account. Email privacy@quitcurve.app for help.",
+        };
+      }
+    }
+  }
+  local.clearAllLocalData();
+  return {};
+}
+
 export async function savePlan(
   plan: UserPlan,
   userId?: string,

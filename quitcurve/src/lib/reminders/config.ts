@@ -1,10 +1,18 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+export function getServiceRoleKey(): string | undefined {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY;
+}
+
+export function getCronSecret(): string | undefined {
+  return process.env.CRON_SECRET;
+}
+
 export function isReminderCronConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY &&
-      process.env.CRON_SECRET,
+      getServiceRoleKey() &&
+      getCronSecret(),
   );
 }
 
@@ -23,7 +31,7 @@ export function isTwilioConfigured(): boolean {
 /** Service-role client for cron / admin jobs. Never expose to the browser. */
 export function createAdminClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = getServiceRoleKey();
   if (!url || !key) {
     throw new Error("Supabase admin client requires URL and service role key");
   }
@@ -40,5 +48,5 @@ export function getReminderFromEmail(): string {
 }
 
 export function getSiteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "https://quitcurve.app";
+  return process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.quitcurve.app";
 }

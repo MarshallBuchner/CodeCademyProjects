@@ -45,6 +45,7 @@ type QuitCurveContextValue = {
   createAccount: (email: string, name: string) => Promise<AuthResult>;
   login: (email: string) => Promise<AuthResult>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<{ error?: string }>;
   setUserPlan: (plan: UserPlan) => Promise<void>;
   logCraving: (data: Omit<CravingLog, "id" | "loggedAt">) => Promise<void>;
   logPuff: (count?: number) => Promise<void>;
@@ -137,6 +138,18 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
       await dataService.logout();
       setUser(null);
       await refresh();
+    },
+    deleteAccount: async () => {
+      const result = await dataService.deleteAccount();
+      if (!result.error) {
+        setUser(null);
+        setPlan(null);
+        setCravings([]);
+        setCheckIns([]);
+        setPuffs([]);
+        setCloudSynced(false);
+      }
+      return result;
     },
     setUserPlan: async (nextPlan) => {
       const saved = await dataService.savePlan(nextPlan, user?.id);

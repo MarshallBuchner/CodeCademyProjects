@@ -153,3 +153,9 @@ export function addPuff(count = 1): PuffLog {
 export function writePuffs(puffs: PuffLog[]): void {
   write(KEYS.puffs, puffs);
 }
+
+/** Wipe all QuitCurve localStorage keys (guest + cached cloud mirrors). */
+export function clearAllLocalData(): void {
+  if (typeof window === "undefined") return;
+  Object.values(KEYS).forEach((key) => localStorage.removeItem(key));
+}

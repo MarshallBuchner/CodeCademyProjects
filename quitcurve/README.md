@@ -31,7 +31,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 **With Supabase:** see [SETUP.md](./SETUP.md) for full deploy + domain guide.  
 **Reminders:** see [REMINDERS.md](./REMINDERS.md) after cloud sync is live.  
-**Puff pacing:** see [PACING.md](./PACING.md) — daily budget, used/remaining, one-tap log.
+**Puff pacing:** see [PACING.md](./PACING.md) — daily budget, used/remaining, one-tap log.  
+**App Store race:** see [APP_STORE.md](./APP_STORE.md) — web is live; native shell + Apple account still required.
 
 ## Deploy
 

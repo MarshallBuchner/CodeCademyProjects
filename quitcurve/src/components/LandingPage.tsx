@@ -389,9 +389,15 @@ function Footer() {
           <Link href="/login" className="hover:text-accent">
             Sign in
           </Link>
-          <a href="/privacy" className="hover:text-accent">
+          <Link href="/support" className="hover:text-accent">
+            Support
+          </Link>
+          <Link href="/privacy" className="hover:text-accent">
             Privacy Policy
-          </a>
+          </Link>
+          <Link href="/terms" className="hover:text-accent">
+            Terms of Service
+          </Link>
         </div>
         <p className="mt-6 text-xs text-white/30">© 2026 QuitCurve</p>
       </div>

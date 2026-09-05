@@ -20,9 +20,9 @@ export default function PrivacyPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-5 py-10 prose prose-invert prose-sm">
+      <main className="mx-auto max-w-2xl px-5 py-10">
         <h1 className="text-3xl font-bold text-foreground">Privacy Policy</h1>
-        <p className="text-muted">Last updated: September 3, 2026</p>
+        <p className="mt-2 text-sm text-muted">Last updated: September 5, 2026</p>
 
         <section className="mt-8 space-y-4 text-sm leading-relaxed text-muted">
           <h2 className="text-lg font-semibold text-foreground">Overview</h2>
@@ -46,7 +46,8 @@ export default function PrivacyPage() {
             </li>
             <li>
               <strong className="text-foreground">Progress data:</strong> craving
-              logs, daily check-ins, and plan statistics
+              logs, daily check-ins, puff logs (for daily pacing), and plan
+              statistics
             </li>
             <li>
               <strong className="text-foreground">Guest mode:</strong> if you skip
@@ -57,6 +58,11 @@ export default function PrivacyPage() {
               if you opt in, we store your reminder preferences, time zone, and
               (for SMS) phone number, plus consent timestamps
             </li>
+            <li>
+              <strong className="text-foreground">Product analytics:</strong>{" "}
+              anonymous usage metrics via Vercel Analytics and Speed Insights
+              (page views / performance — not your quit-plan content)
+            </li>
           </ul>
 
           <h2 className="text-lg font-semibold text-foreground">
@@ -64,10 +70,10 @@ export default function PrivacyPage() {
           </h2>
           <p>
             We use your data solely to provide and improve the QuitCurve service:
-            calculating your personalized reduction curve, tracking progress,
-            syncing across devices when you sign in, and sending optional daily
-            check-in reminders you have consented to. We do not sell your personal
-            data to third parties.
+            calculating your personalized reduction curve, tracking progress and
+            daily puff pacing, syncing across devices when you sign in, and
+            sending optional daily check-in reminders you have consented to. We
+            do not sell your personal data to third parties.
           </p>
 
           <h2 className="text-lg font-semibold text-foreground">
@@ -88,8 +94,8 @@ export default function PrivacyPage() {
               and database (see supabase.com/privacy)
             </li>
             <li>
-              <strong className="text-foreground">Vercel</strong> — app hosting
-              (see vercel.com/legal/privacy-policy)
+              <strong className="text-foreground">Vercel</strong> — app hosting,
+              Analytics, and Speed Insights (see vercel.com/legal/privacy-policy)
             </li>
             <li>
               <strong className="text-foreground">Resend</strong> — transactional
@@ -114,8 +120,12 @@ export default function PrivacyPage() {
 
           <h2 className="text-lg font-semibold text-foreground">Your rights</h2>
           <p>
-            You may request access to, correction of, or deletion of your data at
-            any time by contacting us at{" "}
+            You may access, correct, or delete your data at any time. Signed-in
+            users can delete their account in-app from{" "}
+            <Link href="/account" className="text-accent">
+              Account settings
+            </Link>
+            . You can also email{" "}
             <a href="mailto:privacy@quitcurve.app" className="text-accent">
               privacy@quitcurve.app
             </a>
@@ -135,7 +145,12 @@ export default function PrivacyPage() {
             Questions? Email{" "}
             <a href="mailto:hello@quitcurve.app" className="text-accent">
               hello@quitcurve.app
-            </a>
+            </a>{" "}
+            or visit{" "}
+            <Link href="/support" className="text-accent">
+              Support
+            </Link>
+            .
           </p>
         </section>
       </main>

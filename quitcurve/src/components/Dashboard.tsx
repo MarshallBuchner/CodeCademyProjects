@@ -102,6 +102,20 @@ export function Dashboard() {
                   </Link>
                 )}
                 <Link
+                  href="/account"
+                  className="block px-4 py-2 text-sm text-muted hover:text-foreground"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Account
+                </Link>
+                <Link
+                  href="/support"
+                  className="block px-4 py-2 text-sm text-muted hover:text-foreground"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Support
+                </Link>
+                <Link
                   href="/login"
                   className="block px-4 py-2 text-sm text-muted hover:text-foreground"
                   onClick={() => setMenuOpen(false)}

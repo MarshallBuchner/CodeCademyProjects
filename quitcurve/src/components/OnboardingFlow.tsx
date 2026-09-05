@@ -76,6 +76,7 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
   const [email, setEmail] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [accountError, setAccountError] = useState("");
+  const [adultConfirmed, setAdultConfirmed] = useState(false);
 
   if (!open) return null;
 
@@ -91,6 +92,7 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
     setEmail("");
     setMagicLinkSent(false);
     setAccountError("");
+    setAdultConfirmed(false);
   };
 
   const handleClose = () => {
@@ -248,11 +250,23 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
               />
             ))}
           </div>
+          <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-surface/60 px-4 py-3 text-left text-xs leading-relaxed text-muted">
+            <input
+              type="checkbox"
+              checked={adultConfirmed}
+              onChange={(e) => setAdultConfirmed(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent)]"
+            />
+            <span>
+              I&apos;m 18+ and I understand QuitCurve is a behaviour-change tool,
+              not medical advice.
+            </span>
+          </label>
           <StepNav
             showBack={false}
             onCancel={handleClose}
-            onContinue={() => device && setStep(2)}
-            continueDisabled={!device}
+            onContinue={() => device && adultConfirmed && setStep(2)}
+            continueDisabled={!device || !adultConfirmed}
           />
         </StepContent>
       )}
