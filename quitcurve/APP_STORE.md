@@ -20,7 +20,7 @@ Apple App Store submission needs a **native shell** + Apple Developer account wo
 - [ ] App Store Connect app record + bundle ID (e.g. `app.quitcurve.ios`)
 - [ ] Decide wrapper: **Capacitor** (fastest for this Next app) vs Expo rebuild
 - [ ] Signing certificates + TestFlight build
-- [ ] Working inboxes: `hello@quitcurve.app`, `privacy@quitcurve.app`
+- [x] Working contact inbox: `quitcurve@gmail.com` (custom @quitcurve.app inboxes later)
 - [ ] Age rating questionnaire (expect **17+** for nicotine content)
 - [ ] App Privacy “nutrition labels” (email, optional phone, health-ish usage, analytics)
 - [ ] Screenshots: 6.7" and 6.5" iPhone (and iPad if supporting)

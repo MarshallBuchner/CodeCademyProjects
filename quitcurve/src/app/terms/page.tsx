@@ -60,8 +60,8 @@ export default function TermsPage() {
               Account settings
             </Link>{" "}
             or by emailing{" "}
-            <a href="mailto:privacy@quitcurve.app" className="text-accent">
-              privacy@quitcurve.app
+            <a href="mailto:quitcurve@gmail.com" className="text-accent">
+              quitcurve@gmail.com
             </a>
             .
           </p>
@@ -105,8 +105,8 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-foreground">Contact</h2>
           <p>
             Questions about these terms:{" "}
-            <a href="mailto:hello@quitcurve.app" className="text-accent">
-              hello@quitcurve.app
+            <a href="mailto:quitcurve@gmail.com" className="text-accent">
+              quitcurve@gmail.com
             </a>
           </p>
         </section>

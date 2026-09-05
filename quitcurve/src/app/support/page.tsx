@@ -34,15 +34,9 @@ export default function SupportPage() {
           <div className="rounded-2xl border border-white/10 bg-card p-5">
             <h2 className="text-base font-semibold text-foreground">Email us</h2>
             <p className="mt-2 text-sm text-muted">
-              General help &amp; feedback:{" "}
-              <a href="mailto:hello@quitcurve.app" className="text-accent">
-                hello@quitcurve.app
-              </a>
-            </p>
-            <p className="mt-2 text-sm text-muted">
-              Privacy &amp; data requests:{" "}
-              <a href="mailto:privacy@quitcurve.app" className="text-accent">
-                privacy@quitcurve.app
+              Help, feedback, and privacy requests:{" "}
+              <a href="mailto:quitcurve@gmail.com" className="text-accent">
+                quitcurve@gmail.com
               </a>
             </p>
           </div>

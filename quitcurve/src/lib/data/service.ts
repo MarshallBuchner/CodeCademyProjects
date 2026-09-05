@@ -117,7 +117,7 @@ export async function deleteAccount(): Promise<{ error?: string }> {
         return {
           error:
             body.error ??
-            "Could not delete account. Email privacy@quitcurve.app for help.",
+            "Could not delete account. Email quitcurve@gmail.com for help.",
         };
       }
     }

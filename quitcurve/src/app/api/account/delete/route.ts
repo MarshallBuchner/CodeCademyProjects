@@ -25,7 +25,7 @@ export async function POST() {
       return NextResponse.json(
         {
           error:
-            "Account deletion is not configured yet. Email privacy@quitcurve.app and we will delete your data.",
+            "Account deletion is not configured yet. Email quitcurve@gmail.com and we will delete your data.",
         },
         { status: 503 },
       );
