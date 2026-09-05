@@ -170,6 +170,12 @@ export function AssessmentFlow() {
         >
           View sample assessment
         </button>
+        <Link
+          href="/sample"
+          className="rounded-full border border-white/10 px-5 py-3 text-sm text-white/70 hover:text-white"
+        >
+          Open sample page
+        </Link>
       </div>
       <p className="text-xs text-white/45">
         First assessment works as a guest. Sign in after to keep history and track
