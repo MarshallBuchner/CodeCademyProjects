@@ -14,18 +14,32 @@ App Store / Play submission needs a **Capacitor native shell** + developer accou
 - [x] PWA manifest + PNG home-screen icons (180 / 192 / 512 / 1024)
 - [x] 18+ gate on Welcome
 
-## Blockers for App Store (need Marshall)
+## Apple / store accounts
 
-- [ ] Apple Developer Program ($99/yr) — enroll or confirm access
-- [ ] Google Play Console ($25 one-time)
-- [ ] App Store Connect record + bundle ID: **`app.moment.ios`**
-- [ ] Play package name: **`app.moment.android`**
-- [ ] Capacitor iOS build on a Mac → TestFlight (see `native/README.md`)
-- [ ] Capacitor Android build → Play internal testing
-- [ ] Screenshots: 6.7" + 6.5" iPhone (from device or Simulator)
-- [ ] Age rating questionnaire (expect **12+** or **17+** for UGC + location)
-- [ ] App Privacy labels (email, location, photos/video, analytics)
-- [ ] Custom domain for store URLs (optional but nicer than `*.vercel.app`)
+- [x] Apple Developer Program enrolled (Enrolment Complete)
+- [x] App ID registered: **`app.moment.ios`**
+- [x] App Store Connect app: **MOMENT Capsules** (Prepare for Submission)
+- [ ] ASC listing fields (description, keywords, URLs, category) — fill while signed in
+- [ ] Age rating questionnaire
+- [ ] App Privacy nutrition labels
+- [ ] Pricing: Free + availability
+- [ ] Screenshots: 6.7" + 6.5" iPhone (needs device or Simulator on Mac)
+- [ ] Capacitor iOS build → TestFlight (needs M1+ Mac + current Xcode)
+- [ ] Google Play Console — paused until Android device
+- [ ] Play package: **`app.moment.android`**
+- [ ] Custom domain for store URLs (optional)
+
+## Mac for TestFlight (hardware)
+
+Current MacBook Air **2017 / Monterey** cannot run modern Xcode. Need **Apple Silicon (M1+)**.
+
+**Buy guidance (CAD, Windsor area):**
+- Target: used/refurb **M1 MacBook Air**, prefer **256GB+** (512 ideal), **16GB RAM** if budget allows
+- Under ~$500: verified **M1 Air 8GB / 512GB** is acceptable to ship (close apps while building)
+- Skip **Intel** Airs (2019–2020) even when cheap — same Xcode dead-end as the 2017
+- MacBook Pro is optional; not required for Capacitor shells
+
+Until then: finish all ASC text/privacy/age prep; keep PWA live.
 
 ## Capacitor path (chosen)
 
@@ -38,19 +52,20 @@ server.url       → https://moment-opal.vercel.app
 
 ## Draft App Store listing
 
-**Name:** MOMENT  
-**Subtitle:** Leave something behind. Unlock it when you return.  
+**Name:** MOMENT Capsules *(store name; “MOMENT” alone was taken)*  
+**Subtitle:** Leave something. Unlock on return. *(≤30 chars)*  
 **Category:** Lifestyle (secondary: Social Networking)  
-**Age:** 12+ or 17+ (confirm with ASC questionnaire)
+**Age:** complete ASC questionnaire (UGC + location → likely 12+ or 17+)
 
-**Description (draft):**  
+**Description:**  
 MOMENT lets you leave photos, video, voice, and notes locked to a real place—then unlock them when you return. Start annual traditions, share private Moments with people you choose, and keep a map of the places that matter. Private by design. Not a public feed.
 
-**Keywords (draft):** time capsule, location lock, memories, geofence, tradition, private share, anniversary  
+**Keywords:** time capsule,location lock,memories,geofence,tradition,private share,anniversary  
 
 **Support URL:** https://moment-opal.vercel.app/support  
 **Privacy URL:** https://moment-opal.vercel.app/privacy  
 **Marketing URL:** https://moment-opal.vercel.app  
+**Copyright:** 2026 Marshall Buchner
 
 ## Privacy nutrition label — map from product
 
@@ -61,12 +76,12 @@ MOMENT lets you leave photos, video, voice, and notes locked to a real place—t
 | Photos / Video | Yes | No | User Moment media |
 | Product interaction | No | No | Vercel Analytics (aggregate) |
 
-## Suggested order this week
+## Suggested order
 
-1. Enroll Apple Developer + Play Console  
-2. Finish Capacitor shell on Mac → TestFlight  
-3. Screenshots + listing copy  
-4. Submit MOMENT + QuitCurve (parallel)  
+1. Fill ASC listing + privacy + age (no Mac required) — sign in on appstoreconnect.apple.com  
+2. Get M1+ Mac → `moment/native` → TestFlight (see `native/README.md`)  
+3. Screenshots from Simulator or device  
+4. Submit MOMENT; parallel QuitCurve ASC record  
 5. POWR after both are in review / live  
 
 See also: QuitCurve `APP_STORE.md` in the quitcurve repo.
