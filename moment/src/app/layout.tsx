@@ -42,6 +42,10 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "MOMENT",
   },
+  icons: {
+    icon: [{ url: "/icons/moment-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/icons/moment-180.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     type: "website",
     locale: "en_CA",

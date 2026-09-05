@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Logo, Wordmark } from "@/components/Logo";
 import { useMoment } from "@/context/MomentProvider";
 
 export function Welcome() {
   const { dismissWelcome, seedDemo } = useMoment();
+  const [acceptedAge, setAcceptedAge] = useState(false);
 
   return (
     <main className="relative min-h-dvh overflow-x-hidden">
@@ -22,13 +24,39 @@ export function Welcome() {
           Make the moment last forever.
         </p>
 
-        <div className="mt-12 flex w-full max-w-sm flex-col gap-3">
-          <button type="button" className="btn-primary" onClick={dismissWelcome}>
+        <label className="mt-10 flex max-w-sm cursor-pointer items-start gap-3 text-left text-sm text-muted">
+          <input
+            type="checkbox"
+            checked={acceptedAge}
+            onChange={(e) => setAcceptedAge(e.target.checked)}
+            className="mt-1 h-4 w-4 shrink-0 rounded border-white/20 bg-transparent accent-[var(--accent)]"
+          />
+          <span>
+            I confirm I&apos;m 18+ and agree to the{" "}
+            <Link href="/terms" className="text-accent underline-offset-2 hover:underline">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-accent underline-offset-2 hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </span>
+        </label>
+
+        <div className="mt-6 flex w-full max-w-sm flex-col gap-3">
+          <button
+            type="button"
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={!acceptedAge}
+            onClick={dismissWelcome}
+          >
             Get Started
           </button>
           <button
             type="button"
-            className="btn-ghost"
+            className="btn-ghost disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={!acceptedAge}
             onClick={() => void seedDemo()}
           >
             Load demo Moments
@@ -130,7 +158,8 @@ export function Welcome() {
 
           <button
             type="button"
-            className="btn-primary mt-10 w-full"
+            className="btn-primary mt-10 w-full disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={!acceptedAge}
             onClick={dismissWelcome}
           >
             Start a tradition

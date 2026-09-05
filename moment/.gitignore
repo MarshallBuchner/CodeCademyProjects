@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Capacitor shell deps / generated platforms (add ios/android on Mac)
+/native/node_modules
+/native/ios
+/native/android
