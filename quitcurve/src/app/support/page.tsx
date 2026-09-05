@@ -47,9 +47,11 @@ export default function SupportPage() {
             </h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted">
               <li>
-                <strong className="text-foreground">Magic link lands on home:</strong>{" "}
-                request and open the link in the same browser (Safari↔Safari or
-                Chrome↔Chrome). Prefer webmail over Apple Mail on Mac.
+                <strong className="text-foreground">Magic link:</strong> request
+                the link on <strong>www.quitcurve.app</strong> in Chrome, then
+                open it in that same Chrome window (prefer Gmail in the browser,
+                not the Mail app). If it fails, request a fresh link—old ones
+                burn after one try.
               </li>
               <li>
                 <strong className="text-foreground">Reminders:</strong> Dashboard →
