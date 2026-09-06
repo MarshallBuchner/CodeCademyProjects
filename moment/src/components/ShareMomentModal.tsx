@@ -50,13 +50,18 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
 
   async function sendCloudShare() {
     if (!cloudUser || !recipientEmail.trim()) return;
+    if (!recipientName.trim()) {
+      setError("Who is this Moment for?");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       const { createSharedMoment } = await import("@/lib/supabase/sharing");
       await createSharedMoment({
-        momentId: moment.id,
+        moment,
         senderId: cloudUser.id,
+        senderEmail: cloudUser.email,
         senderName: senderName.trim() || cloudUser.email.split("@")[0],
         recipientEmail: recipientEmail.trim(),
         recipientName: recipientName.trim(),
@@ -64,7 +69,13 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
       });
       setCloudSent(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to send");
+      const msg =
+        e instanceof Error
+          ? e.message
+          : e && typeof e === "object" && "message" in e
+            ? String((e as { message: unknown }).message)
+            : "Failed to send";
+      setError(msg || "Failed to send");
     } finally {
       setBusy(false);
     }
@@ -171,12 +182,19 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
           </div>
           <h2 className="font-display mt-5 text-2xl tracking-wide">Moment sent</h2>
           <p className="mt-2 text-sm text-muted">
-            When <span className="text-accent">{recipientName || recipientEmail}</span> signs
-            into MOMENT with <span className="text-foreground/90">{recipientEmail}</span>,
-            they&apos;ll see this waiting — locked until they arrive at{" "}
+            This does <span className="text-foreground/90">not</span> email them automatically.
+            When <span className="text-accent">{recipientName || recipientEmail}</span> opens
+            MOMENT and signs in with{" "}
+            <span className="text-foreground/90">{recipientEmail}</span>, they&apos;ll see it
+            waiting — locked until they arrive at{" "}
             <span className="text-foreground/90">{moment.placeName}</span>.
           </p>
-          <button type="button" className="btn-primary mt-8 w-full" onClick={onClose}>
+          <p className="mt-3 rounded-2xl border border-white/10 bg-black/30 p-3 text-left text-xs text-muted">
+            Text them: “I left you a Moment at {moment.placeName}. Open{" "}
+            {typeof window !== "undefined" ? window.location.origin : "moment-opal.vercel.app"}{" "}
+            and sign in with {recipientEmail}.”
+          </p>
+          <button type="button" className="btn-primary mt-6 w-full" onClick={onClose}>
             Done
           </button>
         </div>
@@ -223,7 +241,7 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
 
             {canCloudShare && (
               <label className="text-xs tracking-wide text-muted uppercase">
-                Their email (account-locked delivery)
+                Their email (account delivery — not an email send)
                 <input
                   className="field mt-1.5"
                   type="email"
@@ -232,7 +250,8 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
                   placeholder="alex@email.com"
                 />
                 <span className="mt-1 block text-[11px] text-muted/80">
-                  They sign in with this email to claim it. PIN-only shares still work below.
+                  Saves the Moment to their MOMENT account when they sign in with this
+                  address. It does not send a Gmail/iMessage. Still text them after.
                 </span>
               </label>
             )}
