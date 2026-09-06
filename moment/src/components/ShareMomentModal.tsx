@@ -57,16 +57,31 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const { createSharedMoment } = await import("@/lib/supabase/sharing");
-      await createSharedMoment({
-        moment,
-        senderId: cloudUser.id,
-        senderEmail: cloudUser.email,
-        senderName: senderName.trim() || cloudUser.email.split("@")[0],
-        recipientEmail: recipientEmail.trim(),
-        recipientName: recipientName.trim(),
-        passcode: passcode.trim() || undefined,
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        throw new Error("Sign in again, then try sending.");
+      }
+      const res = await fetch("/api/share-account", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          moment,
+          senderName: senderName.trim() || cloudUser.email.split("@")[0],
+          recipientEmail: recipientEmail.trim(),
+          recipientName: recipientName.trim(),
+          passcode: passcode.trim() || undefined,
+        }),
       });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send");
+      }
       setCloudSent(true);
     } catch (e) {
       const msg =
@@ -129,8 +144,14 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
           return;
         }
         url = hashUrl;
+        const why =
+          "error" in published
+            ? published.error
+            : "Short links unavailable";
         note =
-          "Short links unavailable — sent a text-only link (no photo/video). SMS may still truncate; AirDrop or email is more reliable.";
+          /share_links table missing/i.test(why)
+            ? "Short links need one Supabase step: run moment/supabase/share_links.sql in the SQL Editor, then try again."
+            : `${why} — using a text-only fallback (no photo/video). SMS may still truncate; AirDrop is more reliable.`;
       }
       rememberOutbound({
         shareId: capsule.shareId,

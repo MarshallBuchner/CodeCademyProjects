@@ -1,3 +1,9 @@
+-- ============================================================
+-- REQUIRED for SMS / Messenger short links
+-- Paste into: Supabase → SQL Editor → Run
+-- Project: moment (wpxfvzosoqsaxkwneapw)
+-- ============================================================
+
 -- Run in Supabase SQL Editor (MOMENT project)
 -- Enables short /m/{id}?k=… share links for SMS & Messenger
 
