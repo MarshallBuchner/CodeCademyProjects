@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { LANDING_FAQS } from "@/lib/landing-faq";
 import { Logo } from "./Logo";
 import { NicotineCurveChart } from "./NicotineCurveChart";
 import { OnboardingFlow } from "./OnboardingFlow";
@@ -9,8 +10,8 @@ import { OnboardingFlow } from "./OnboardingFlow";
 const NAV_LINKS = [
   { href: "#how-it-works", label: "How it works" },
   { href: "#your-plan", label: "Your plan" },
-  { href: "#progress", label: "Progress" },
-  { href: "#resources", label: "Resources" },
+  { href: "#faq", label: "FAQ" },
+  { href: "#founder", label: "Founder" },
 ];
 
 export function Navbar({ onStartPlan }: { onStartPlan: () => void }) {
@@ -102,6 +103,8 @@ export function LandingPage() {
         <HowItWorks />
         <ProgressSection />
         <NicotineCurvePreview />
+        <FaqSection />
+        <FounderSection />
         <CTASection onStartPlan={() => setOnboardingOpen(true)} />
       </main>
       <Footer />
@@ -350,6 +353,82 @@ function NicotineCurvePreview() {
             ))}
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function FaqSection() {
+  return (
+    <section id="faq" className="px-5 py-16 md:py-24">
+      <div className="mx-auto max-w-3xl">
+        <p className="mb-3 text-xs font-medium uppercase tracking-widest text-accent">
+          Questions
+        </p>
+        <h2 className="text-3xl font-bold leading-tight md:text-4xl">
+          Straight answers before you start.
+        </h2>
+        <p className="mt-4 text-base leading-relaxed text-muted">
+          Free beta, slip-adaptive plans, and no day-one shame spiral.
+        </p>
+        <div className="mt-10 divide-y divide-white/8 border-y border-white/8">
+          {LANDING_FAQS.map((item) => (
+            <details key={item.question} className="group py-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left text-base font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
+                <span>{item.question}</span>
+                <span
+                  aria-hidden
+                  className="shrink-0 text-accent transition group-open:rotate-45"
+                >
+                  +
+                </span>
+              </summary>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+                {item.answer}
+              </p>
+            </details>
+          ))}
+        </div>
+        <p className="mt-6 text-sm text-muted">
+          Still stuck?{" "}
+          <Link href="/support" className="text-accent hover:underline">
+            Contact support
+          </Link>
+          .
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function FounderSection() {
+  return (
+    <section id="founder" className="px-5 py-16 md:py-24">
+      <div className="mx-auto max-w-3xl">
+        <p className="mb-3 text-xs font-medium uppercase tracking-widest text-accent">
+          Why QuitCurve exists
+        </p>
+        <h2 className="text-3xl font-bold leading-tight md:text-4xl">
+          Built by someone who hates the day-one reset.
+        </h2>
+        <p className="mt-6 text-base leading-relaxed text-muted">
+          I&apos;m{" "}
+          <span className="font-medium text-foreground">Marshall Buchner</span>
+          —founder of QuitCurve. Most quit tools treat one slip like total
+          failure. That shame spiral is why people quit the app before they quit
+          nicotine.
+        </p>
+        <p className="mt-4 text-base leading-relaxed text-muted">
+          QuitCurve is the tool I wanted: a realistic step-down, craving logs
+          that actually change the plan, and progress you keep even on messy
+          days. Small team. Honest product. No lecture.
+        </p>
+        <p className="mt-6 text-sm text-muted">
+          Questions or feedback —{" "}
+          <a href="mailto:quitcurve@gmail.com" className="text-accent hover:underline">
+            quitcurve@gmail.com
+          </a>
+        </p>
       </div>
     </section>
   );

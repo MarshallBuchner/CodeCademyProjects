@@ -27,8 +27,8 @@ export const metadata: Metadata = {
     "quit curve",
     "craving tracker",
   ],
-  authors: [{ name: "QuitCurve" }],
-  creator: "QuitCurve",
+  authors: [{ name: "Marshall Buchner" }, { name: "QuitCurve" }],
+  creator: "Marshall Buchner",
   openGraph: {
     type: "website",
     locale: "en_CA",
