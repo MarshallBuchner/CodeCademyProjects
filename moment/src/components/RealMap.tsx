@@ -60,10 +60,23 @@ function MoveReporter({
   return null;
 }
 
+// CARTO free basemaps now require an API key (watermark otherwise).
+// Esri World Dark Gray works without a key for light personal use.
 const darkTiles =
-  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
+const darkLabels =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
 const attribution =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>';
+  'Tiles &copy; <a href="https://www.esri.com/">Esri</a>';
+
+function DarkBasemap() {
+  return (
+    <>
+      <TileLayer url={darkTiles} attribution={attribution} />
+      <TileLayer url={darkLabels} attribution="" />
+    </>
+  );
+}
 
 type PickMapProps = {
   center: Coords;
@@ -82,7 +95,7 @@ export function PlacePickerMap({ center, className = "", onCenterChange }: PickM
         zoomControl={false}
         attributionControl={false}
       >
-        <TileLayer url={darkTiles} attribution={attribution} />
+        <DarkBasemap />
         <Recenter center={center} />
         <MoveReporter onMoved={onCenterChange} />
       </MapContainer>
@@ -127,7 +140,7 @@ export function JourneyMap({
         zoomControl={false}
         attributionControl={false}
       >
-        <TileLayer url={darkTiles} attribution={attribution} />
+        <DarkBasemap />
         <Recenter center={center} zoom={user ? 14 : 15} />
         <Circle
           center={[target.lat, target.lng]}
@@ -195,7 +208,7 @@ export function MomentsOverviewMap({
         zoomControl={false}
         attributionControl={false}
       >
-        <TileLayer url={darkTiles} attribution={attribution} />
+        <DarkBasemap />
         <Recenter center={center} zoom={12} />
         {user && (
           <CircleMarker
