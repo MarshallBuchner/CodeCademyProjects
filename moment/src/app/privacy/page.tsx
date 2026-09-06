@@ -36,7 +36,8 @@ export default function PrivacyPage() {
           <li>
             <strong className="text-foreground">Location:</strong> your device
             GPS (with permission) to unlock Moments near the drop point — used
-            on-device for distance checks
+            on-device for distance checks. Native app builds may also request
+            camera, microphone, or photo library access when you attach media
           </li>
           <li>
             <strong className="text-foreground">Guest mode:</strong> without an
@@ -101,6 +102,16 @@ export default function PrivacyPage() {
           Recipients still need to be at the place to unlock content. Do not
           leave Moments that put anyone at risk or reveal sensitive personal
           information of others without consent.
+        </p>
+
+        <h2 className="text-lg font-semibold text-foreground">
+          Children
+        </h2>
+        <p>
+          MOMENT is for adults (18+) only. It is not directed at children under
+          13 (or the equivalent age in your region), and we do not knowingly
+          collect personal information from children. If you believe a child has
+          provided data, contact us and we will delete it.
         </p>
 
         <h2 className="text-lg font-semibold text-foreground">Your rights</h2>

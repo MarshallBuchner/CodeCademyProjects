@@ -17,7 +17,8 @@ export async function GET(request: Request) {
   const res = await fetch(url.toString(), {
     headers: {
       Accept: "application/json",
-      "User-Agent": "MOMENT-App/0.1 (cloud-agent preview)",
+      "User-Agent":
+        "MOMENT/1.0 (https://moment-opal.vercel.app; marshallbuchner96@gmail.com)",
     },
     next: { revalidate: 3600 },
   });

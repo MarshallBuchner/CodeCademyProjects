@@ -24,8 +24,9 @@ export default function TermsPage() {
         </h2>
         <p>
           MOMENT is intended for adults (18+) who want to leave private,
-          location-locked memories for themselves or people they choose. You must
-          be legally able to enter this agreement in your jurisdiction.
+          location-locked memories for themselves or people they choose. It is
+          not directed at children. You must be legally able to enter this
+          agreement in your jurisdiction.
         </p>
 
         <h2 className="text-lg font-semibold text-foreground">Your account</h2>

@@ -1,6 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
+  // Matches App Store Connect. After `cap add android`, set Android
+  // applicationId to app.moment.android in the generated Gradle project.
   appId: "app.moment.ios",
   appName: "MOMENT",
   webDir: "www",

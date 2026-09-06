@@ -3,10 +3,14 @@
 import { useMemo, useState } from "react";
 import {
   buildShareUrl,
+  buildShortShareUrl,
   createCapsuleFromMoment,
   estimateCapsuleBytes,
+  publishShortShareLink,
   rememberOutbound,
   sealCapsule,
+  SMS_SAFE_URL_CHARS,
+  stripMediaForLink,
 } from "@/lib/share";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useMoment } from "@/context/MomentProvider";
@@ -66,39 +70,72 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
     }
   }
 
-  function createLink() {
+  async function createLink() {
     setError(null);
     setCopied(false);
     if (!recipientName.trim()) {
       setError("Who is this Moment for?");
       return;
     }
-    const capsule = createCapsuleFromMoment({
-      moment,
-      recipientName,
-      senderName,
-      passcode: passcode || undefined,
-    });
-    const bytes = estimateCapsuleBytes(capsule);
-    if (bytes > 1_800_000) {
-      setError(
-        "Too large for a link. Use a shorter note or smaller photo.",
-      );
-      return;
+    setBusy(true);
+    try {
+      const capsule = createCapsuleFromMoment({
+        moment,
+        recipientName,
+        senderName,
+        passcode: passcode || undefined,
+      });
+      const bytes = estimateCapsuleBytes(capsule);
+      if (bytes > 1_800_000) {
+        setError(
+          "Too large for a link. Use a shorter note or smaller photo.",
+        );
+        return;
+      }
+      const sealed = sealCapsule(capsule);
+      // Prefer short server link — giant #hash URLs fail in SMS / Messenger
+      const published = await publishShortShareLink({
+        shareId: capsule.shareId,
+        accessKey: capsule.accessKey,
+        sealed,
+      });
+      let url: string;
+      let note: string | null = null;
+      if ("path" in published) {
+        url = `${window.location.origin}${published.path}`;
+      } else {
+        const lean = stripMediaForLink(capsule);
+        const leanSealed = sealCapsule(lean);
+        const hashUrl = buildShareUrl(
+          window.location.origin,
+          lean,
+          leanSealed,
+        );
+        if (hashUrl.length > SMS_SAFE_URL_CHARS) {
+          setError(
+            "This link is too long for text/Messenger. Sign in and send by email, or drop the photo and try again.",
+          );
+          return;
+        }
+        url = hashUrl;
+        note =
+          "Short links unavailable — sent a text-only link (no photo/video). SMS may still truncate; AirDrop or email is more reliable.";
+      }
+      rememberOutbound({
+        shareId: capsule.shareId,
+        accessKey: capsule.accessKey,
+        recipientName: capsule.recipientName,
+        momentId: moment.id,
+        title: moment.title,
+        placeName: moment.placeName,
+        createdAt: capsule.createdAt,
+        urlPath: `/m/${capsule.shareId}?k=${capsule.accessKey}`,
+      });
+      setLink(url);
+      if (note) setError(note);
+    } finally {
+      setBusy(false);
     }
-    const sealed = sealCapsule(capsule);
-    const url = buildShareUrl(window.location.origin, capsule, sealed);
-    rememberOutbound({
-      shareId: capsule.shareId,
-      accessKey: capsule.accessKey,
-      recipientName: capsule.recipientName,
-      momentId: moment.id,
-      title: moment.title,
-      placeName: moment.placeName,
-      createdAt: capsule.createdAt,
-      urlPath: `/m/${capsule.shareId}?k=${capsule.accessKey}`,
-    });
-    setLink(url);
   }
 
   async function copyLink() {
@@ -116,8 +153,7 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
     try {
       await navigator.share({
         title: `A Moment for ${recipientName || "you"}`,
-        text: `${senderName || "Someone"} left you a Moment at ${moment.placeName}. Open it when you arrive.`,
-        url: link,
+        text: `${senderName || "Someone"} left you a Moment at ${moment.placeName}. Open when you arrive:\n${link}`,
       });
     } catch {
       // user cancelled
@@ -241,7 +277,7 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
             <button
               type="button"
               className={canCloudShare && recipientEmail.trim() ? "btn-ghost" : "btn-primary"}
-              onClick={createLink}
+              onClick={() => void createLink()}
             >
               {canCloudShare && recipientEmail.trim()
                 ? "Or create a link instead"
@@ -252,6 +288,9 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
           <div className="mt-5 flex flex-col gap-3">
             <p className="text-sm text-foreground/90">
               Private link for <span className="text-accent">{recipientName}</span> is ready.
+            </p>
+            <p className="text-xs text-muted">
+              Short link — works in Texts / Messenger. If send fails, copy and paste the link alone.
             </p>
             <div className="max-h-28 overflow-auto break-all rounded-2xl border border-white/10 bg-black/40 p-3 text-[11px] text-muted">
               {link}

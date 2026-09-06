@@ -18,8 +18,10 @@ You can go live now; add cloud sync later.
    | `NEXT_PUBLIC_SITE_URL` | `https://moment-opal.vercel.app` (or your URL) |
    | `NEXT_PUBLIC_SUPABASE_URL` | cloud sync |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | cloud sync |
-   | `SUPABASE_SERVICE_ROLE_KEY` | account deletion (server-only) |
+   | `SUPABASE_SERVICE_ROLE_KEY` | account deletion + **short share links** (server-only) |
 5. **Deploy**
+
+After Supabase is connected, run `supabase/share_links.sql` in the SQL Editor so SMS/Messenger shares use short `/m/…?k=…` links (long `#hash` links get truncated and show “Link invalid”).
 
 Live URL: `https://moment-opal.vercel.app`
 

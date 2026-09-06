@@ -96,6 +96,60 @@ export function buildShareUrl(
   return url.toString();
 }
 
+/** Short URL for SMS / Messenger — payload is fetched from /api/share-links. */
+export function buildShortShareUrl(origin: string, capsule: SharedCapsule): string {
+  const url = new URL(`/m/${capsule.shareId}`, origin);
+  url.searchParams.set("k", capsule.accessKey);
+  return url.toString();
+}
+
+/** SMS / iMessage often break past ~2k chars; Messenger is pickier. */
+export const SMS_SAFE_URL_CHARS = 1800;
+
+export function stripMediaForLink(capsule: SharedCapsule): SharedCapsule {
+  return {
+    ...capsule,
+    media: capsule.media.filter((m) => m.kind === "note"),
+  };
+}
+
+export async function publishShortShareLink(input: {
+  shareId: string;
+  accessKey: string;
+  sealed: string;
+}): Promise<{ path: string } | { error: string }> {
+  try {
+    const res = await fetch("/api/share-links", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    const data = (await res.json()) as { path?: string; error?: string };
+    if (!res.ok || !data.path) {
+      return { error: data.error || "Could not create short link" };
+    }
+    return { path: data.path };
+  } catch {
+    return { error: "Could not create short link (network)" };
+  }
+}
+
+export async function fetchSealedShareLink(
+  shareId: string,
+  accessKey: string,
+): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `/api/share-links/${encodeURIComponent(shareId)}?k=${encodeURIComponent(accessKey)}`,
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { sealed?: string };
+    return data.sealed ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function createCapsuleFromMoment(input: {
   moment: MomentRecord;
   recipientName: string;
