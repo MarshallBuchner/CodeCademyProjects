@@ -11,6 +11,7 @@ import {
 } from "@/lib/geo";
 import {
   capsuleToLocalMoment,
+  fetchSealedShareLink,
   getInboxCapsule,
   rememberInbox,
   unsealCapsule,
@@ -31,29 +32,44 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const key = params.get("k") ?? "";
-    const hash = window.location.hash.startsWith("#")
-      ? window.location.hash.slice(1)
-      : window.location.hash;
-    const sealed = new URLSearchParams(hash).get("d");
+    let cancelled = false;
 
-    let found: SharedCapsule | null = null;
-    if (sealed) {
-      found = unsealCapsule(sealed);
-    }
-    if (!found) {
-      found = getInboxCapsule(shareId);
+    async function load() {
+      const params = new URLSearchParams(window.location.search);
+      const key = params.get("k") ?? "";
+      const hash = window.location.hash.startsWith("#")
+        ? window.location.hash.slice(1)
+        : window.location.hash;
+      const sealedHash = new URLSearchParams(hash).get("d");
+
+      let found: SharedCapsule | null = null;
+      if (sealedHash) {
+        found = unsealCapsule(sealedHash);
+      }
+      if (!found && key) {
+        const sealed = await fetchSealedShareLink(shareId, key);
+        if (sealed) found = unsealCapsule(sealed);
+      }
+      if (!found) {
+        found = getInboxCapsule(shareId);
+      }
+
+      if (cancelled) return;
+
+      if (!found || found.shareId !== shareId || found.accessKey !== key) {
+        setPhase("invalid");
+        return;
+      }
+
+      rememberInbox(found);
+      setCapsule(found);
+      setPhase(found.passcode ? "pin" : "locked");
     }
 
-    if (!found || found.shareId !== shareId || found.accessKey !== key) {
-      setPhase("invalid");
-      return;
-    }
-
-    rememberInbox(found);
-    setCapsule(found);
-    setPhase(found.passcode ? "pin" : "locked");
+    void load();
+    return () => {
+      cancelled = true;
+    };
   }, [shareId]);
 
   useEffect(() => {
