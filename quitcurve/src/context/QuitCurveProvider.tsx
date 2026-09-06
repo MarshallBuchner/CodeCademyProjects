@@ -6,12 +6,18 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import * as dataService from "@/lib/data/service";
 import { computePlanStats } from "@/lib/curve";
+import {
+  identifyUser,
+  markPendingSignup,
+  resetHeyCatchIdentity,
+} from "@/lib/heycatch";
 import { computeDayPacing } from "@/lib/pacing";
 import type {
   CravingLog,
@@ -63,6 +69,7 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [cloudSynced, setCloudSynced] = useState(false);
   const cloudEnabled = isSupabaseConfigured();
+  const identifiedUserId = useRef<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -79,6 +86,16 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!user) {
+      identifiedUserId.current = null;
+      return;
+    }
+    if (identifiedUserId.current === user.id) return;
+    identifiedUserId.current = user.id;
+    identifyUser(user);
+  }, [user]);
 
   useEffect(() => {
     if (!cloudEnabled) return;
@@ -123,12 +140,19 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
     refresh,
     createAccount: async (email, name) => {
       const result = await dataService.createAccount(email, name);
-      if (result.mode === "local") await refresh();
+      if (result.error) return result;
+      // Fire signup_completed once identity is known (now for local; after
+      // magic-link confirm for cloud — see identifyUser + pending flag).
+      markPendingSignup();
+      if (result.mode === "magic_link") return result;
+      await refresh();
       return result;
     },
     login: async (email) => {
       const result = await dataService.requestLogin(email);
       if (result.mode === "local" && result.user) {
+        identifyUser(result.user);
+        identifiedUserId.current = result.user.id;
         setUser(result.user);
         await refresh();
       }
@@ -136,12 +160,16 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
     },
     logout: async () => {
       await dataService.logout();
+      resetHeyCatchIdentity();
+      identifiedUserId.current = null;
       setUser(null);
       await refresh();
     },
     deleteAccount: async () => {
       const result = await dataService.deleteAccount();
       if (!result.error) {
+        resetHeyCatchIdentity();
+        identifiedUserId.current = null;
         setUser(null);
         setPlan(null);
         setCravings([]);

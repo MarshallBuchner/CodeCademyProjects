@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuitCurve } from "@/context/QuitCurveProvider";
+import { trackOnboardingCompleted } from "@/lib/heycatch";
 import type {
   Device,
   Frequency,
@@ -113,6 +114,7 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
   const finishOnboarding = async (withAccount: boolean) => {
     const plan = buildPlan();
     await setUserPlan(plan);
+    trackOnboardingCompleted({ pace, guest: !withAccount });
 
     if (!withAccount) {
       handleClose();
@@ -196,6 +198,7 @@ export function OnboardingFlow({ open, onClose }: OnboardingFlowProps) {
                 setAccountError(result.error);
                 return;
               }
+              trackOnboardingCompleted({ pace, guest: false });
               if (result.mode === "magic_link") {
                 setMagicLinkSent(true);
                 return;
