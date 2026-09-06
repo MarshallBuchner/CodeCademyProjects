@@ -100,6 +100,26 @@ export async function upsertCloudMoments(
   }
 }
 
+/** Service-role upsert — used by authenticated API routes to avoid RLS gaps. */
+export async function upsertCloudMomentsAdmin(
+  userId: string,
+  moments: MomentRecord[],
+): Promise<void> {
+  if (!isSupabaseConfigured() || moments.length === 0) return;
+  const { createAdminClient, getServiceRoleKey } = await import("./admin");
+  if (!getServiceRoleKey()) {
+    throw new Error("Server share is not configured (missing service role key).");
+  }
+  const admin = createAdminClient();
+  const rows = moments.map((m) => toRow(userId, m));
+  const { error } = await admin.from("moments").upsert(rows, {
+    onConflict: "id",
+  });
+  if (error) {
+    throw new Error(error.message || "Could not sync Moment to the cloud");
+  }
+}
+
 export async function deleteCloudMoment(
   userId: string,
   momentId: string,
