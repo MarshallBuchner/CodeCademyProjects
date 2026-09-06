@@ -121,15 +121,18 @@ function Hero({ onStartPlan }: { onStartPlan: () => void }) {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-3 py-1 text-xs font-medium uppercase tracking-widest text-accent">
-              <span aria-hidden>✦</span> Your personal vape quit coach
+              <span aria-hidden>✦</span> Free during beta · no credit card
             </p>
             <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
-              Quit vaping.{" "}
-              <span className="text-accent">Keep your momentum.</span>
+              Slip once.{" "}
+              <span className="text-accent">Don&apos;t start over.</span>
             </h1>
             <p className="mt-5 max-w-lg text-base leading-relaxed text-muted md:text-lg">
-              A personalized step-down plan that adapts when life happens—so one
-              slip never means starting over.
+              QuitCurve builds a personalized step-down plan that{" "}
+              <strong className="font-medium text-foreground">
+                adapts after a slip
+              </strong>
+              —so you keep your progress instead of resetting to day one.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <button
@@ -147,12 +150,16 @@ function Hero({ onStartPlan }: { onStartPlan: () => void }) {
                 See how it works
               </a>
             </div>
-            <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-              <span>🛡 Private by design</span>
+            <p className="mt-4 text-xs text-muted">
+              Free during beta · no credit card · works on your phone browser
+              (Add to Home Screen)
+            </p>
+            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+              <span>Private by design</span>
               <span className="hidden sm:inline">•</span>
-              <span>No shame</span>
+              <span>No shame spiral</span>
               <span className="hidden sm:inline">•</span>
-              <span>Built for real progress</span>
+              <span>Money saved as you taper</span>
             </p>
           </div>
           <div className="relative mx-auto w-full max-w-sm lg:max-w-md">
@@ -278,7 +285,8 @@ function ProgressSection() {
   const features = [
     "Daily targets that feel achievable",
     "A one-tap craving check-in",
-    "Plans that adjust after a slip",
+    "Plans that adjust after a slip — no day-one reset",
+    "Money saved as your nicotine taper drops",
     "Milestones worth celebrating",
   ];
 
@@ -360,7 +368,7 @@ function CTASection({ onStartPlan }: { onStartPlan: () => void }) {
           </h2>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted">
             Start with where you are today. Your first personalized plan takes
-            about 60 seconds.
+            about 60 seconds — free during beta, no credit card.
           </p>
           <button
             type="button"
@@ -370,6 +378,9 @@ function CTASection({ onStartPlan }: { onStartPlan: () => void }) {
             Build my quit plan
             <span aria-hidden>→</span>
           </button>
+          <p className="mt-4 text-xs text-muted">
+            Works in Safari or Chrome · Add to Home Screen for the app icon
+          </p>
         </div>
       </div>
     </section>
