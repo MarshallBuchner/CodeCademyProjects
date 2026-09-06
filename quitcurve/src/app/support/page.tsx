@@ -55,7 +55,7 @@ export default function SupportPage() {
               </li>
               <li>
                 <strong className="text-foreground">Reminders:</strong> Dashboard →
-                menu → Reminders. Enable email, set your time zone + hour, save.
+                menu → Reminders. Enable the daily email (~7pm Eastern) and save.
               </li>
               <li>
                 <strong className="text-foreground">Home screen icon:</strong> delete
