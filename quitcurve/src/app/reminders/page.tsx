@@ -3,7 +3,7 @@ import { ReminderSettingsForm } from "@/components/ReminderSettingsForm";
 
 export const metadata: Metadata = {
   title: "Reminders",
-  description: "Manage daily QuitCurve check-in email and SMS reminders.",
+  description: "Manage daily QuitCurve check-in email reminders.",
 };
 
 export default function RemindersPage() {

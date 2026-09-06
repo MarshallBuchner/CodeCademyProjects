@@ -134,7 +134,11 @@ export async function runDailyReminders(
       continue;
     }
 
-    if (hour !== row.preferred_hour) {
+    // Hobby runs once daily (~7pm Eastern). Only enforce preferred_hour when
+    // REMINDER_MATCH_PREFERRED_HOUR=true (Vercel Pro hourly cron).
+    const matchPreferredHour =
+      process.env.REMINDER_MATCH_PREFERRED_HOUR === "true";
+    if (matchPreferredHour && hour !== row.preferred_hour) {
       result.skipped += 1;
       continue;
     }

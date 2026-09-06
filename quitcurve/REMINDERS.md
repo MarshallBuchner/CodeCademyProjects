@@ -1,14 +1,19 @@
 # Check-in Reminders
 
-Daily branded email (Resend) and optional SMS (Twilio) reminders for users who opt in.
+Daily branded email (Resend) reminders for users who opt in.
 
-## What it does
+## What it does (beta / Hobby)
 
 - Users manage preferences at `/reminders` (Dashboard → menu → **Reminders**)
-- Email and/or SMS with explicit consent + time zone + preferred local hour
-- Vercel Cron hits `/api/cron/reminders` every hour
+- **Email only** for now (SMS UI hidden until Twilio is live)
+- Fixed copy: ~**7:00 PM Eastern**; settings save `America/Toronto` + hour `19`
+- Vercel Cron hits `/api/cron/reminders` **once daily** at `23:00 UTC`
+- By default, **all** email-opted-in users are eligible that run (hour matching off)
 - Skips anyone who already completed today’s check-in (in their time zone)
 - Duplicate protection via `reminder_sends` unique `(user_id, channel, local_date)`
+
+To enforce preferred-hour matching later (Pro hourly cron), set
+`REMINDER_MATCH_PREFERRED_HOUR=true` in Vercel.
 
 ## 1. Run the Supabase migration
 

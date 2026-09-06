@@ -8,15 +8,11 @@ import {
   fetchReminderSettings,
   upsertReminderSettings,
 } from "@/lib/reminders/client";
-import {
-  detectBrowserTimezone,
-  normalizePhoneE164,
-} from "@/lib/reminders/timezone";
-import {
-  COMMON_TIMEZONES,
-  HOUR_OPTIONS,
-  type ReminderSettings,
-} from "@/lib/reminders/types";
+import type { ReminderSettings } from "@/lib/reminders/types";
+
+/** Hobby cron runs 23:00 UTC ≈ 7pm Eastern in daylight time. */
+const HOBBY_TIMEZONE = "America/Toronto";
+const HOBBY_HOUR = 19;
 
 export function ReminderSettingsForm() {
   const { user, cloudEnabled, loading: appLoading } = useQuitCurve();
@@ -27,12 +23,7 @@ export function ReminderSettingsForm() {
   const [existing, setExisting] = useState<ReminderSettings | null>(null);
 
   const [emailEnabled, setEmailEnabled] = useState(false);
-  const [smsEnabled, setSmsEnabled] = useState(false);
-  const [phone, setPhone] = useState("");
-  const [timezone, setTimezone] = useState("America/Toronto");
-  const [preferredHour, setPreferredHour] = useState(18);
   const [emailConsent, setEmailConsent] = useState(false);
-  const [smsConsent, setSmsConsent] = useState(false);
 
   useEffect(() => {
     if (appLoading) return;
@@ -49,14 +40,7 @@ export function ReminderSettingsForm() {
         if (settings) {
           setExisting(settings);
           setEmailEnabled(settings.emailEnabled);
-          setSmsEnabled(settings.smsEnabled);
-          setPhone(settings.phoneE164 ?? "");
-          setTimezone(settings.timezone);
-          setPreferredHour(settings.preferredHour);
           setEmailConsent(Boolean(settings.emailConsentAt));
-          setSmsConsent(Boolean(settings.smsConsentAt));
-        } else {
-          setTimezone(detectBrowserTimezone());
         }
       } catch (err) {
         if (!cancelled) {
@@ -85,33 +69,17 @@ export function ReminderSettingsForm() {
       return;
     }
 
-    if (smsEnabled && !smsConsent) {
-      setError("Please confirm SMS reminder consent.");
-      setSaving(false);
-      return;
-    }
-
-    let phoneE164: string | null = null;
-    if (smsEnabled) {
-      phoneE164 = normalizePhoneE164(phone);
-      if (!phoneE164) {
-        setError("Enter a valid phone number with country code (e.g. +14165551234).");
-        setSaving(false);
-        return;
-      }
-    }
-
     try {
       const next = await upsertReminderSettings(
         user.id,
         {
           emailEnabled,
-          smsEnabled,
-          phoneE164,
-          timezone,
-          preferredHour,
+          smsEnabled: false,
+          phoneE164: null,
+          timezone: HOBBY_TIMEZONE,
+          preferredHour: HOBBY_HOUR,
           emailConsent,
-          smsConsent,
+          smsConsent: false,
         },
         existing,
       );
@@ -148,7 +116,7 @@ export function ReminderSettingsForm() {
       <Shell>
         <h1 className="text-2xl font-bold">Reminders</h1>
         <p className="mt-3 text-sm text-muted">
-          Sign in to turn on daily check-in reminders by email or SMS.
+          Sign in to turn on a daily check-in email reminder.
         </p>
         <Link
           href="/login"
@@ -160,13 +128,6 @@ export function ReminderSettingsForm() {
     );
   }
 
-  const timezoneOptions: { value: string; label: string }[] = [
-    ...COMMON_TIMEZONES,
-  ];
-  if (!timezoneOptions.some((tz) => tz.value === timezone)) {
-    timezoneOptions.unshift({ value: timezone, label: timezone });
-  }
-
   return (
     <Shell>
       <p className="text-xs font-medium uppercase tracking-widest text-accent">
@@ -174,8 +135,10 @@ export function ReminderSettingsForm() {
       </p>
       <h1 className="mt-2 text-2xl font-bold">Check-in reminders</h1>
       <p className="mt-3 text-sm leading-relaxed text-muted">
-        We&apos;ll nudge you once a day at your chosen time — only if you
-        haven&apos;t completed today&apos;s check-in yet.
+        During beta, we send one daily email around{" "}
+        <strong className="text-foreground">7:00 PM Eastern</strong> — only if
+        you haven&apos;t completed today&apos;s check-in yet. SMS and custom
+        times come later.
       </p>
 
       <form onSubmit={handleSave} className="mt-8 space-y-6">
@@ -185,10 +148,7 @@ export function ReminderSettingsForm() {
             <input
               type="checkbox"
               checked={emailEnabled}
-              onChange={(e) => {
-                setEmailEnabled(e.target.checked);
-                if (e.target.checked && !emailConsent) setEmailConsent(false);
-              }}
+              onChange={(e) => setEmailEnabled(e.target.checked)}
               className="mt-1"
             />
             <span>
@@ -213,77 +173,11 @@ export function ReminderSettingsForm() {
           )}
         </fieldset>
 
-        <fieldset className="rounded-2xl border border-white/8 bg-card p-5">
-          <legend className="px-1 text-sm font-semibold">SMS (optional)</legend>
-          <p className="mt-2 text-xs text-muted">
-            Requires Twilio to be configured on the server. Standard carrier rates
-            may apply.
+        <div className="rounded-2xl border border-white/8 bg-card p-5 text-sm">
+          <p className="text-muted">Delivery window</p>
+          <p className="mt-1 font-medium text-foreground">
+            ~7:00 PM Eastern · email only
           </p>
-          <label className="mt-3 flex items-start gap-3 text-sm">
-            <input
-              type="checkbox"
-              checked={smsEnabled}
-              onChange={(e) => setSmsEnabled(e.target.checked)}
-              className="mt-1"
-            />
-            <span>Also text me a short reminder</span>
-          </label>
-          {smsEnabled && (
-            <div className="mt-4 space-y-3">
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1 416 555 1234"
-                className="w-full rounded-xl border border-white/10 bg-surface px-4 py-3 text-sm outline-none focus:border-accent/50"
-                required={smsEnabled}
-              />
-              <label className="flex items-start gap-3 text-xs text-muted">
-                <input
-                  type="checkbox"
-                  checked={smsConsent}
-                  onChange={(e) => setSmsConsent(e.target.checked)}
-                  className="mt-0.5"
-                  required={smsEnabled}
-                />
-                <span>
-                  I consent to receive QuitCurve SMS reminders at this number. Msg
-                  frequency: up to 1/day. Reply options managed in this app.
-                </span>
-              </label>
-            </div>
-          )}
-        </fieldset>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block text-sm">
-            <span className="mb-2 block text-muted">Time zone</span>
-            <select
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-card px-4 py-3 text-sm outline-none focus:border-accent/50"
-            >
-              {timezoneOptions.map((tz) => (
-                <option key={tz.value} value={tz.value}>
-                  {tz.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm">
-            <span className="mb-2 block text-muted">Remind me at</span>
-            <select
-              value={preferredHour}
-              onChange={(e) => setPreferredHour(Number(e.target.value))}
-              className="w-full rounded-xl border border-white/10 bg-card px-4 py-3 text-sm outline-none focus:border-accent/50"
-            >
-              {HOUR_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
         </div>
 
         {error && <p className="text-sm text-red-400">{error}</p>}
@@ -311,7 +205,10 @@ function Shell({ children }: { children: React.ReactNode }) {
           <Link href="/dashboard">
             <Logo />
           </Link>
-          <Link href="/dashboard" className="text-sm text-muted hover:text-foreground">
+          <Link
+            href="/dashboard"
+            className="text-sm text-muted hover:text-foreground"
+          >
             ← Dashboard
           </Link>
         </div>
