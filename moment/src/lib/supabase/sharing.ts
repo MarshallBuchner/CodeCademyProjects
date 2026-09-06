@@ -85,9 +85,34 @@ function fromRow(row: SharedMomentRow): SharedMomentInfo {
   };
 }
 
+function shareErrorMessage(error: unknown): string {
+  if (!error) return "Failed to send";
+  if (typeof error === "string") return error;
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const msg = String((error as { message?: unknown }).message ?? "");
+    const code =
+      "code" in error ? String((error as { code?: unknown }).code ?? "") : "";
+    if (code === "23503" || /foreign key/i.test(msg)) {
+      return "Couldn’t sync this Moment to the cloud before sharing. Try again, or create a link instead.";
+    }
+    if (code === "42501" || /row-level security|permission denied/i.test(msg)) {
+      return "Cloud share blocked by permissions. Confirm you’re signed in, then try again.";
+    }
+    if (msg) return msg;
+  }
+  return "Failed to send";
+}
+
+/**
+ * Upserts the Moment (and sender profile) then creates a shared_moments row.
+ * Account delivery does not email automatically — recipient signs in with that
+ * address to claim it.
+ */
 export async function createSharedMoment(input: {
-  momentId: string;
+  moment: MomentRecord;
   senderId: string;
+  senderEmail: string;
   senderName: string;
   recipientEmail: string;
   recipientName: string;
@@ -95,19 +120,47 @@ export async function createSharedMoment(input: {
 }): Promise<SharedMomentInfo> {
   if (!isSupabaseConfigured()) throw new Error("Cloud not configured");
   const supabase = createClient();
+
+  const senderName = input.senderName.trim() || input.senderEmail.split("@")[0] || "Someone";
+  const recipientEmail = input.recipientEmail.toLowerCase().trim();
+  if (!recipientEmail || !recipientEmail.includes("@")) {
+    throw new Error("Enter a valid email for them.");
+  }
+
+  // Profile must exist (shared_moments.sender_id → profiles)
+  const { error: profileError } = await supabase.from("profiles").upsert(
+    {
+      id: input.senderId,
+      email: input.senderEmail.toLowerCase().trim(),
+      name: senderName,
+    },
+    { onConflict: "id" },
+  );
+  if (profileError) {
+    throw new Error(shareErrorMessage(profileError));
+  }
+
+  // Moment must exist in cloud (shared_moments.moment_id → moments)
+  const { upsertCloudMoments } = await import("./sync");
+  try {
+    await upsertCloudMoments(input.senderId, [input.moment]);
+  } catch (e) {
+    throw new Error(shareErrorMessage(e));
+  }
+
   const { data, error } = await supabase
     .from("shared_moments")
     .insert({
-      moment_id: input.momentId,
+      moment_id: input.moment.id,
       sender_id: input.senderId,
-      sender_name: input.senderName,
-      recipient_email: input.recipientEmail.toLowerCase().trim(),
-      recipient_name: input.recipientName.trim(),
+      sender_name: senderName,
+      recipient_email: recipientEmail,
+      recipient_name: input.recipientName.trim() || "friend",
       passcode: input.passcode?.trim() || null,
     })
     .select("*")
     .single();
-  if (error) throw error;
+  if (error) throw new Error(shareErrorMessage(error));
   return fromRow(data as SharedMomentRow);
 }
 

@@ -90,7 +90,14 @@ export async function upsertCloudMoments(
   const { error } = await supabase.from("moments").upsert(rows, {
     onConflict: "id",
   });
-  if (error) throw error;
+  if (error) {
+    const msg = error.message || "Could not sync Moment to the cloud";
+    throw new Error(
+      /column|user_id|schema cache/i.test(msg)
+        ? `Cloud sync failed (${msg}). The moments table may need a schema refresh in Supabase.`
+        : msg,
+    );
+  }
 }
 
 export async function deleteCloudMoment(
