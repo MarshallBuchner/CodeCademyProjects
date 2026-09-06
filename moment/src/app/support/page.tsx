@@ -40,8 +40,8 @@ export default function SupportPage() {
             </li>
             <li>
               <strong className="text-foreground">Unlock:</strong> allow location
-              when prompted, stand near the drop pin, or use Simulate arrival on
-              demo Moments.
+              when prompted and stand near the drop pin. On your own Moments in
+              the app, you can use Simulate arrival for demos.
             </li>
             <li>
               <strong className="text-foreground">Native / App Store app:</strong>{" "}

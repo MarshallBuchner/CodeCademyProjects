@@ -127,12 +127,6 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
     setPhase("locked");
   }
 
-  function simulateArrival() {
-    if (!capsule) return;
-    setUserCoords({ ...capsule.coords });
-    setPhase("unlocked");
-  }
-
   if (phase === "loading") {
     return (
       <div className="grid min-h-dvh place-items-center bg-background">
@@ -219,9 +213,9 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
             <p className="text-xs text-muted">{capsule.placeSubtitle}</p>
           )}
         </div>
-        <button type="button" className="btn-ghost mt-auto" onClick={simulateArrival}>
-          Simulate arrival (demo)
-        </button>
+        <p className="mt-auto pt-6 text-center text-xs text-muted">
+          This Moment unlocks when you arrive — location required.
+        </p>
       </main>
     );
   }
