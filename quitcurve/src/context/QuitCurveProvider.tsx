@@ -17,6 +17,7 @@ import {
   identifyUser,
   markPendingSignup,
   resetHeyCatchIdentity,
+  trackFirstCheckIn,
 } from "@/lib/heycatch";
 import { computeDayPacing } from "@/lib/pacing";
 import type {
@@ -144,6 +145,13 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
       // Fire signup_completed once identity is known (now for local; after
       // magic-link confirm for cloud — see identifyUser + pending flag).
       markPendingSignup();
+      void fetch("/api/email/welcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, name }),
+      }).catch(() => {
+        /* non-blocking */
+      });
       if (result.mode === "magic_link") return result;
       await refresh();
       return result;
@@ -196,6 +204,10 @@ export function QuitCurveProvider({ children }: { children: React.ReactNode }) {
     submitCheckIn: async (checkInData) => {
       const updated = await dataService.saveCheckIn(checkInData, user?.id);
       setCheckIns(updated);
+      trackFirstCheckIn({
+        mood: checkInData.mood,
+        stayedOnPlan: checkInData.stayedOnPlan,
+      });
     },
   };
 

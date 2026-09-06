@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { trackCtaClicked } from "@/lib/heycatch";
 import { LANDING_FAQS } from "@/lib/landing-faq";
 import { Logo } from "./Logo";
 import { NicotineCurveChart } from "./NicotineCurveChart";
@@ -95,17 +96,22 @@ export function Navbar({ onStartPlan }: { onStartPlan: () => void }) {
 export function LandingPage() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
 
+  const startPlan = (location: string) => {
+    trackCtaClicked({ location });
+    setOnboardingOpen(true);
+  };
+
   return (
     <>
-      <Navbar onStartPlan={() => setOnboardingOpen(true)} />
+      <Navbar onStartPlan={() => startPlan("nav")} />
       <main>
-        <Hero onStartPlan={() => setOnboardingOpen(true)} />
+        <Hero onStartPlan={() => startPlan("hero")} />
         <HowItWorks />
         <ProgressSection />
         <NicotineCurvePreview />
         <FaqSection />
         <FounderSection />
-        <CTASection onStartPlan={() => setOnboardingOpen(true)} />
+        <CTASection onStartPlan={() => startPlan("footer_cta")} />
       </main>
       <Footer />
       <OnboardingFlow
