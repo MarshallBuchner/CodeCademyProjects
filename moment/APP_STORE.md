@@ -13,7 +13,7 @@ App Store / Play submission needs a **Capacitor native shell** + developer accou
 - [x] Vercel Analytics
 - [x] PWA manifest + PNG home-screen icons (180 / 192 / 512 / 1024)
 - [x] 18+ gate on Welcome
-- [x] Demo Moments + **Simulate arrival (demo)** for reviewers
+- [x] Demo Moments + **Simulate arrival (demo)** for reviewers (own Moments only; not on shared links)
 
 ## Apple / store accounts
 
@@ -94,10 +94,11 @@ Uses standard HTTPS only. In Xcode / ASC: **ITSAppUsesNonExemptEncryption = NO**
 ```
 MOMENT is a private location-locked memory app (not a public social feed). No IAP.
 
-How to review without traveling to a pin:
+How to review without traveling to a pin (own Moments only — shared /m/ links require real arrival):
 1. Open the app → check “I confirm I’m 18+…” → Continue
 2. Tap “Load demo Moments”
 3. Open any Moment → tap “Simulate arrival (demo)” to unlock
+Note: Simulate arrival is intentionally omitted on private share links so recipients must be at the place.
 
 Optional signed-in path: request a magic link to your review email; open the link in the app/WebView. Account deletion: Account settings (/account).
 
