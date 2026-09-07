@@ -1,0 +1,18 @@
+# QuitCurve
+
+> Personalized vape quit coach with step-down plans that adapt after a slip—so one hard day does not mean starting over.
+
+QuitCurve helps adults taper nicotine with daily targets, craving check-ins, money-saved tracking, and optional email reminders. Free during beta. Web / PWA (Add to Home Screen). Not medical advice or nicotine replacement therapy. 18+.
+
+## Site
+
+- Home: https://www.quitcurve.app/
+- Support: https://www.quitcurve.app/support
+- Privacy: https://www.quitcurve.app/privacy
+- Terms: https://www.quitcurve.app/terms
+- Sign in: https://www.quitcurve.app/login
+
+## Contact
+
+- Email: quitcurve@gmail.com
+- Founder: Marshall Buchner
