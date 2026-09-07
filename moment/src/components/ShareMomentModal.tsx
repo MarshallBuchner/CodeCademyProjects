@@ -2,15 +2,11 @@
 
 import { useMemo, useState } from "react";
 import {
-  buildShareUrl,
-  buildShortShareUrl,
   createCapsuleFromMoment,
   estimateCapsuleBytes,
   publishShortShareLink,
   rememberOutbound,
   sealCapsule,
-  SMS_SAFE_URL_CHARS,
-  stripMediaForLink,
 } from "@/lib/share";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useMoment } from "@/context/MomentProvider";
@@ -119,40 +115,23 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
         return;
       }
       const sealed = sealCapsule(capsule);
-      // Prefer short server link — giant #hash URLs fail in SMS / Messenger
+      // Short server links only — Facebook/Messenger strip #hash on open/copy
       const published = await publishShortShareLink({
         shareId: capsule.shareId,
         accessKey: capsule.accessKey,
         sealed,
       });
-      let url: string;
-      let note: string | null = null;
-      if ("path" in published) {
-        url = `${window.location.origin}${published.path}`;
-      } else {
-        const lean = stripMediaForLink(capsule);
-        const leanSealed = sealCapsule(lean);
-        const hashUrl = buildShareUrl(
-          window.location.origin,
-          lean,
-          leanSealed,
-        );
-        if (hashUrl.length > SMS_SAFE_URL_CHARS) {
-          setError(
-            "This link is too long for text/Messenger. Sign in and send by email, or drop the photo and try again.",
-          );
-          return;
-        }
-        url = hashUrl;
+      if (!("path" in published)) {
         const why =
-          "error" in published
-            ? published.error
-            : "Short links unavailable";
-        note =
+          "error" in published ? published.error : "Short links unavailable";
+        setError(
           /share_links table missing/i.test(why)
-            ? "Short links need one Supabase step: run moment/supabase/share_links.sql in the SQL Editor, then try again."
-            : `${why} — using a text-only fallback (no photo/video). SMS may still truncate; AirDrop is more reliable.`;
+            ? "Short links need Supabase: run moment/supabase/share_links.sql, then try again."
+            : `${why} Try again in a moment, or send via account delivery.`,
+        );
+        return;
       }
+      const url = `${window.location.origin}${published.path}`;
       rememberOutbound({
         shareId: capsule.shareId,
         accessKey: capsule.accessKey,
@@ -161,10 +140,9 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
         title: moment.title,
         placeName: moment.placeName,
         createdAt: capsule.createdAt,
-        urlPath: `/m/${capsule.shareId}?k=${capsule.accessKey}`,
+        urlPath: published.path,
       });
       setLink(url);
-      if (note) setError(note);
     } finally {
       setBusy(false);
     }

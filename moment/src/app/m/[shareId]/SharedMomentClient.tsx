@@ -49,8 +49,14 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         }
         // Messenger / copy-paste often strips #hash — short links recover via API
         if (!found && key) {
-          const sealed = await fetchSealedShareLink(shareId, key);
-          if (sealed) found = unsealCapsule(sealed);
+          const ids = Array.from(new Set([shareId, decodeURIComponent(shareId)]));
+          for (const id of ids) {
+            const sealed = await fetchSealedShareLink(id, key);
+            if (sealed) {
+              found = unsealCapsule(sealed);
+              if (found) break;
+            }
+          }
         }
         if (!found) {
           found = getInboxCapsule(shareId);
@@ -150,8 +156,11 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
 
   if (phase === "loading") {
     return (
-      <div className="grid min-h-dvh place-items-center bg-background">
-        <div className="h-10 w-10 animate-pulse rounded-full bg-accent/30" />
+      <div className="grid min-h-dvh place-items-center bg-background px-6 text-center">
+        <div>
+          <div className="mx-auto h-10 w-10 animate-pulse rounded-full bg-accent/30" />
+          <p className="mt-4 text-sm text-muted">Opening Moment…</p>
+        </div>
       </div>
     );
   }
