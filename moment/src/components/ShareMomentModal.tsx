@@ -330,7 +330,7 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
               Private link for <span className="text-accent">{recipientName}</span> is ready.
             </p>
             <p className="text-xs text-muted">
-              Short link — works in Texts / Messenger. If send fails, copy and paste the link alone.
+              Short link — works when pasted into Safari. In Messenger, prefer Open in Safari if paste looks blank.
             </p>
             <div className="max-h-28 overflow-auto break-all rounded-2xl border border-white/10 bg-black/40 p-3 text-[11px] text-muted">
               {link}
