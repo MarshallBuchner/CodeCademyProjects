@@ -365,10 +365,10 @@ function NicotineCurvePreview() {
 }
 
 function FaqSection() {
-  // Controlled accordion — native <details>/<summary> with flex breaks
-  // toggle on iOS Safari (HeyCatch saw rage taps on "Is QuitCurve free?").
-  const [openQuestion, setOpenQuestion] = useState<string | null>(null);
-
+  // Keep native <details> so FAQ works before JS hydrates.
+  // Do NOT put display:flex on <summary> — Safari/iOS often fails to
+  // toggle (HeyCatch rage taps on "Is QuitCurve free?"). Flex lives on
+  // an inner wrapper instead (flexbugs #9).
   return (
     <section id="faq" className="px-5 py-16 md:py-24">
       <div className="mx-auto max-w-3xl">
@@ -382,40 +382,24 @@ function FaqSection() {
           Free beta, slip-adaptive plans, and no day-one shame spiral.
         </p>
         <div className="mt-10 divide-y divide-white/8 border-y border-white/8">
-          {LANDING_FAQS.map((item) => {
-            const isOpen = openQuestion === item.question;
-            const panelId = `faq-panel-${item.question.replace(/\W+/g, "-").toLowerCase()}`;
-
-            return (
-              <div key={item.question} className="py-4">
-                <button
-                  type="button"
-                  aria-expanded={isOpen}
-                  aria-controls={panelId}
-                  onClick={() =>
-                    setOpenQuestion(isOpen ? null : item.question)
-                  }
-                  className="flex w-full cursor-pointer items-center justify-between gap-4 text-left text-base font-medium text-foreground"
-                >
+          {LANDING_FAQS.map((item) => (
+            <details key={item.question} className="group py-4">
+              <summary className="cursor-pointer list-none text-left text-base font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
+                <span className="flex w-full items-center justify-between gap-4">
                   <span>{item.question}</span>
                   <span
                     aria-hidden
-                    className={`shrink-0 text-accent transition ${isOpen ? "rotate-45" : ""}`}
+                    className="shrink-0 text-accent transition group-open:rotate-45"
                   >
                     +
                   </span>
-                </button>
-                {isOpen && (
-                  <p
-                    id={panelId}
-                    className="mt-3 max-w-2xl text-sm leading-relaxed text-muted"
-                  >
-                    {item.answer}
-                  </p>
-                )}
-              </div>
-            );
-          })}
+                </span>
+              </summary>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+                {item.answer}
+              </p>
+            </details>
+          ))}
         </div>
         <p className="mt-6 text-sm text-muted">
           Still stuck?{" "}
