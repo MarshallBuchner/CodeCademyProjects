@@ -164,10 +164,10 @@ export async function logPuff(
   userId?: string,
 ): Promise<PuffLog[]> {
   if (usingCloudSync() && userId) {
-    await cloud.insertPuff(userId, count);
-    const remote = await cloud.fetchUserData(userId);
-    local.writePuffs(remote.puffs);
-    return remote.puffs;
+    const inserted = await cloud.insertPuff(userId, count);
+    const next = [...local.getPuffs(), inserted];
+    local.writePuffs(next);
+    return next;
   }
   local.addPuff(count);
   return [...local.getPuffs()];

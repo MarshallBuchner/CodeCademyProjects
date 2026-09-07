@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CheckInModal } from "./CheckInModal";
@@ -29,6 +29,9 @@ export function Dashboard() {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [loggingPuff, setLoggingPuff] = useState(false);
+  const [puffError, setPuffError] = useState("");
+  const [puffFlash, setPuffFlash] = useState(false);
+  const puffInFlight = useRef(false);
 
   if (!plan || !stats || !pacing) {
     return (
@@ -62,10 +65,20 @@ export function Dashboard() {
   const ringOffset = 100 - ringPct;
 
   const handleLogPuff = async () => {
+    if (puffInFlight.current) return;
+    puffInFlight.current = true;
     setLoggingPuff(true);
+    setPuffError("");
     try {
       await logPuff(1);
+      setPuffFlash(true);
+      window.setTimeout(() => setPuffFlash(false), 600);
+    } catch (err) {
+      setPuffError(
+        err instanceof Error ? err.message : "Couldn’t log puff. Try again.",
+      );
     } finally {
+      puffInFlight.current = false;
       setLoggingPuff(false);
     }
   };
@@ -248,10 +261,13 @@ export function Dashboard() {
             type="button"
             onClick={handleLogPuff}
             disabled={loggingPuff}
-            className="flex items-center justify-center gap-2 rounded-full bg-accent py-4 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-60"
+            aria-busy={loggingPuff}
+            className={`flex items-center justify-center gap-2 rounded-full bg-accent py-4 text-sm font-semibold text-background transition hover:opacity-90 disabled:opacity-60 ${
+              puffFlash ? "ring-2 ring-accent ring-offset-2 ring-offset-background" : ""
+            }`}
           >
             <span className="text-lg leading-none">+</span>
-            {loggingPuff ? "Logging…" : "Log a puff"}
+            {loggingPuff ? "Logging…" : puffFlash ? "Logged" : "Log a puff"}
           </button>
           <button
             type="button"
@@ -261,6 +277,9 @@ export function Dashboard() {
             Log craving
           </button>
         </div>
+        {puffError && (
+          <p className="mt-2 text-center text-xs text-red-400">{puffError}</p>
+        )}
 
         <div className="mt-6 rounded-3xl border border-white/8 bg-card p-5">
           <div className="mb-3 flex items-center justify-between">
