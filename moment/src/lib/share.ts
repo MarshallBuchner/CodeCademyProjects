@@ -139,9 +139,13 @@ export async function fetchSealedShareLink(
   accessKey: string,
 ): Promise<string | null> {
   try {
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(() => ctrl.abort(), 12_000);
     const res = await fetch(
       `/api/share-links/${encodeURIComponent(shareId)}?k=${encodeURIComponent(accessKey)}`,
+      { signal: ctrl.signal },
     );
+    window.clearTimeout(timer);
     if (!res.ok) return null;
     const data = (await res.json()) as { sealed?: string };
     return data.sealed ?? null;
@@ -236,11 +240,24 @@ export function loadInbox(): SharedCapsule[] {
 }
 
 export function rememberInbox(capsule: SharedCapsule) {
-  const prev = loadInbox().filter((s) => s.shareId !== capsule.shareId);
-  localStorage.setItem(
-    SHARE_INBOX,
-    JSON.stringify([capsule, ...prev].slice(0, 40)),
-  );
+  if (typeof window === "undefined") return;
+  try {
+    const prev = loadInbox().filter((s) => s.shareId !== capsule.shareId);
+    // Prefer lean inbox entries so Safari quota doesn't blow up on big photos
+    const lean: SharedCapsule = {
+      ...capsule,
+      media: capsule.media.filter((m) => {
+        if (m.kind === "note") return true;
+        return m.payload.length < 200_000;
+      }),
+    };
+    localStorage.setItem(
+      SHARE_INBOX,
+      JSON.stringify([lean, ...prev].slice(0, 20)),
+    );
+  } catch {
+    // Private mode / quota — ignore; Moment still opens from memory
+  }
 }
 
 export function getInboxCapsule(shareId: string): SharedCapsule | null {

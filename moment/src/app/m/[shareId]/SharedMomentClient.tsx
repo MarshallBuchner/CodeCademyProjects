@@ -35,35 +35,55 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
     let cancelled = false;
 
     async function load() {
-      const params = new URLSearchParams(window.location.search);
-      const key = params.get("k") ?? "";
-      const hash = window.location.hash.startsWith("#")
-        ? window.location.hash.slice(1)
-        : window.location.hash;
-      const sealedHash = new URLSearchParams(hash).get("d");
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const key = params.get("k") ?? "";
+        const hash = window.location.hash.startsWith("#")
+          ? window.location.hash.slice(1)
+          : window.location.hash;
+        const sealedHash = new URLSearchParams(hash).get("d");
 
-      let found: SharedCapsule | null = null;
-      if (sealedHash) {
-        found = unsealCapsule(sealedHash);
-      }
-      if (!found && key) {
-        const sealed = await fetchSealedShareLink(shareId, key);
-        if (sealed) found = unsealCapsule(sealed);
-      }
-      if (!found) {
-        found = getInboxCapsule(shareId);
-      }
+        let found: SharedCapsule | null = null;
+        if (sealedHash) {
+          found = unsealCapsule(sealedHash);
+        }
+        // Messenger / copy-paste often strips #hash — short links recover via API
+        if (!found && key) {
+          const ids = Array.from(new Set([shareId, decodeURIComponent(shareId)]));
+          for (const id of ids) {
+            const sealed = await fetchSealedShareLink(id, key);
+            if (sealed) {
+              found = unsealCapsule(sealed);
+              if (found) break;
+            }
+          }
+        }
+        if (!found) {
+          found = getInboxCapsule(shareId);
+        }
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      if (!found || found.shareId !== shareId || found.accessKey !== key) {
-        setPhase("invalid");
-        return;
+        if (!found || found.shareId !== shareId) {
+          setPhase("invalid");
+          return;
+        }
+        // Allow hash-only opens (no ?k=) and normal short links
+        if (key && found.accessKey !== key) {
+          setPhase("invalid");
+          return;
+        }
+
+        try {
+          rememberInbox(found);
+        } catch {
+          // Safari private / quota can throw — still show the Moment
+        }
+        setCapsule(found);
+        setPhase(found.passcode ? "pin" : "locked");
+      } catch {
+        if (!cancelled) setPhase("invalid");
       }
-
-      rememberInbox(found);
-      setCapsule(found);
-      setPhase(found.passcode ? "pin" : "locked");
     }
 
     void load();
@@ -71,6 +91,13 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
       cancelled = true;
     };
   }, [shareId]);
+
+  // Escape hatch: never leave users on a blank spinner
+  useEffect(() => {
+    if (phase !== "loading") return;
+    const id = window.setTimeout(() => setPhase("invalid"), 15_000);
+    return () => window.clearTimeout(id);
+  }, [phase]);
 
   useEffect(() => {
     if (phase !== "locked" && phase !== "unlocked") return;
@@ -129,8 +156,11 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
 
   if (phase === "loading") {
     return (
-      <div className="grid min-h-dvh place-items-center bg-background">
-        <div className="h-10 w-10 animate-pulse rounded-full bg-accent/30" />
+      <div className="grid min-h-dvh place-items-center bg-background px-6 text-center">
+        <div>
+          <div className="mx-auto h-10 w-10 animate-pulse rounded-full bg-accent/30" />
+          <p className="mt-4 text-sm text-muted">Opening Moment…</p>
+        </div>
       </div>
     );
   }
@@ -141,7 +171,10 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         <Logo size={64} />
         <h1 className="font-display mt-6 text-3xl tracking-wide">Link invalid</h1>
         <p className="mt-2 text-sm text-muted">
-          This private Moment link is missing its key, was altered, or isn’t for this device.
+          This private Moment link is missing its key, was altered, or isn&apos;t
+          for this device. If you copied it from Messenger, try{" "}
+          <span className="text-foreground/90">Open in Safari</span> from the
+          in-app browser, or ask them to resend with a fresh short link.
         </p>
         <Link href="/" className="btn-primary mt-8 w-full">
           Open MOMENT
