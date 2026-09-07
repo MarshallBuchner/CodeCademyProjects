@@ -124,6 +124,8 @@ body {
   color: var(--foreground);
   padding: 0.85rem 1rem;
   outline: none;
+  text-decoration: none;
+  -webkit-text-decoration-line: none;
 }
 
 .field:focus {
@@ -133,6 +135,7 @@ body {
 
 .field::placeholder {
   color: rgba(139, 135, 144, 0.85);
+  text-decoration: none;
 }
 
 .toggle {

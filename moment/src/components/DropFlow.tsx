@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PlacePickerMap } from "@/components/Maps";
 import { useMoment } from "@/context/MomentProvider";
+import { useKeyboardInset, scrollFieldIntoView } from "@/hooks/useKeyboardInset";
 import { formatShortDate } from "@/lib/format";
 import { reverseGeocode, searchPlaces, type PlaceLookup } from "@/lib/geocode";
 import { compressImageFile, readFileAsDataUrl } from "@/lib/media";
@@ -15,11 +16,15 @@ export function DropPlace() {
   const [query, setQuery] = useState(draft.placeName || "");
   const [results, setResults] = useState<PlaceLookup[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searchEmpty, setSearchEmpty] = useState(false);
   const [labelBusy, setLabelBusy] = useState(false);
   const geocodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchSeq = useRef(0);
+  const keyboardInset = useKeyboardInset();
 
   const mapCenter = draft.coords ?? userCoords ?? { lat: 42.3149, lng: -83.0364 };
+  const searchNear = draft.coords ?? userCoords ?? mapCenter;
 
   useEffect(() => {
     void refreshLocation().then((coords) => {
@@ -57,15 +62,20 @@ export function DropPlace() {
 
   function onSearchChange(value: string) {
     setQuery(value);
+    setSearchEmpty(false);
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
       if (value.trim().length < 2) {
         setResults([]);
+        setSearching(false);
         return;
       }
+      const seq = ++searchSeq.current;
       setSearching(true);
-      void searchPlaces(value, userCoords).then((items) => {
+      void searchPlaces(value, searchNear).then((items) => {
+        if (seq !== searchSeq.current) return;
         setResults(items);
+        setSearchEmpty(items.length === 0);
         setSearching(false);
       });
     }, 350);
@@ -79,6 +89,7 @@ export function DropPlace() {
     });
     setQuery(place.name);
     setResults([]);
+    setSearchEmpty(false);
   }
 
   async function useMyLocation() {
@@ -89,7 +100,10 @@ export function DropPlace() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-8 pt-6">
+    <main
+      className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-8 pt-6"
+      style={{ paddingBottom: keyboardInset > 0 ? keyboardInset + 16 : undefined }}
+    >
       <button
         type="button"
         className="mb-4 flex items-center gap-2 text-sm text-muted"
@@ -99,14 +113,21 @@ export function DropPlace() {
       </button>
       <p className="text-xs tracking-[0.22em] text-accent uppercase">Drop a Moment</p>
       <h1 className="font-display mt-1 text-3xl tracking-wide">Choose a place</h1>
-      <p className="mt-1 text-sm text-muted">Pan the map — the pin stays in the center.</p>
+      <p className="mt-1 text-sm text-muted">
+        Search a park, street, or full address — or pan the map.
+      </p>
 
       <div className="relative mt-5">
         <input
           value={query}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search a place…"
+          onFocus={(e) => scrollFieldIntoView(e.currentTarget)}
+          placeholder="e.g. Mic Mac Park, or 1234 Main St"
           className="field pl-10"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="words"
+          spellCheck={false}
         />
         <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
           ⌕
@@ -130,6 +151,11 @@ export function DropPlace() {
         </ul>
       )}
       {searching && <p className="mt-2 text-xs text-muted">Searching…</p>}
+      {!searching && searchEmpty && (
+        <p className="mt-2 text-xs text-muted">
+          No matches — try “Mic Mac” with a space, add the city, or pan the map to the spot.
+        </p>
+      )}
 
       <PlacePickerMap
         center={mapCenter}
@@ -152,13 +178,17 @@ export function DropPlace() {
       <div className="mt-auto pt-6">
         <div className="mb-3 rounded-2xl border border-white/8 bg-card/80 px-4 py-3">
           <p className="text-sm font-medium">
-            {labelBusy ? "Finding place name…" : draft.placeName || "No place selected"}
+            {labelBusy && !draft.placeName
+              ? "Finding place name…"
+              : draft.placeName || "No place selected"}
           </p>
           <p className="text-xs text-muted">
-            {draft.placeSubtitle ||
-              (draft.coords
-                ? `${draft.coords.lat.toFixed(5)}, ${draft.coords.lng.toFixed(5)}`
-                : "Pan the map to set a pin")}
+            {labelBusy && draft.placeName
+              ? "Updating place name…"
+              : draft.placeSubtitle ||
+                (draft.coords
+                  ? `${draft.coords.lat.toFixed(5)}, ${draft.coords.lng.toFixed(5)}`
+                  : "Pan the map to set a pin")}
           </p>
         </div>
         <button
@@ -182,6 +212,7 @@ export function DropRecord() {
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
   const startedAt = useRef(0);
+  const keyboardInset = useKeyboardInset();
 
   function upsertMedia(item: MomentMedia) {
     setDraft({
@@ -276,7 +307,10 @@ export function DropRecord() {
     .join(" · ");
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-8 pt-6">
+    <main
+      className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-8 pt-6"
+      style={{ paddingBottom: keyboardInset > 0 ? keyboardInset + 24 : undefined }}
+    >
       <button
         type="button"
         className="mb-4 flex items-center gap-2 text-sm text-muted"
@@ -295,6 +329,7 @@ export function DropRecord() {
           className="field mt-2"
           value={draft.title}
           onChange={(e) => setDraft({ title: e.target.value })}
+          onFocus={(e) => scrollFieldIntoView(e.currentTarget)}
           placeholder="Sunset promise"
         />
       </label>
@@ -428,6 +463,7 @@ export function DropRecord() {
                   upsertMedia({ kind: "note", payload: e.target.value });
                 }
               }}
+              onFocus={(e) => scrollFieldIntoView(e.currentTarget)}
               placeholder="Write something meaningful…"
               autoFocus
             />

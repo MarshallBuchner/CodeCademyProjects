@@ -10,7 +10,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { distanceMeters, getCurrentPosition, offsetCoords } from "@/lib/geo";
+import {
+  distanceMeters,
+  getCurrentPosition,
+  offsetCoords,
+  withinUnlockRadius,
+  type CoordsWithAccuracy,
+} from "@/lib/geo";
 import {
   hasSeenWelcome,
   loadMoments,
@@ -22,7 +28,6 @@ import {
   emptyDraft,
   UNLOCK_RADIUS_METERS,
   type AppView,
-  type Coords,
   type DraftMoment,
   type MomentRecord,
 } from "@/lib/types";
@@ -48,9 +53,9 @@ type MomentContextValue = {
   activeMomentId: string | null;
   setActiveMomentId: (id: string | null) => void;
   activeMoment: MomentRecord | null;
-  userCoords: Coords | null;
+  userCoords: CoordsWithAccuracy | null;
   locationError: string | null;
-  refreshLocation: () => Promise<Coords | null>;
+  refreshLocation: () => Promise<CoordsWithAccuracy | null>;
   startDrop: () => void;
   dropMoment: () => MomentRecord | null;
   openMoment: (id: string) => void;
@@ -80,7 +85,7 @@ export function MomentProvider({ children }: { children: ReactNode }) {
   const [moments, setMoments] = useState<MomentRecord[]>([]);
   const [draft, setDraftState] = useState<DraftMoment>(emptyDraft());
   const [activeMomentId, setActiveMomentId] = useState<string | null>(null);
-  const [userCoords, setUserCoords] = useState<Coords | null>(null);
+  const [userCoords, setUserCoords] = useState<CoordsWithAccuracy | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [cloudUser, setCloudUser] = useState<CloudUser | null>(null);
   const [cloudStatus, setCloudStatus] = useState("Guest · local only");
@@ -235,8 +240,12 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     }
     if (!activeMoment.locationLocked) return true;
     if (distanceToActive == null) return false;
-    return distanceToActive <= UNLOCK_RADIUS_METERS;
-  }, [activeMoment, distanceToActive]);
+    return withinUnlockRadius(
+      distanceToActive,
+      UNLOCK_RADIUS_METERS,
+      userCoords?.accuracy,
+    );
+  }, [activeMoment, distanceToActive, userCoords?.accuracy]);
 
   const dismissWelcome = useCallback(() => {
     markWelcomeSeen();
@@ -304,7 +313,11 @@ export function MomentProvider({ children }: { children: ReactNode }) {
         if (m.timeLocked && m.unlockAt && now < new Date(m.unlockAt).getTime()) {
           unlocked = false;
         } else if (m.locationLocked && coords) {
-          unlocked = distanceMeters(coords, m.coords) <= UNLOCK_RADIUS_METERS;
+          unlocked = withinUnlockRadius(
+            distanceMeters(coords, m.coords),
+            UNLOCK_RADIUS_METERS,
+            coords.accuracy,
+          );
         } else if (m.locationLocked) {
           unlocked = false;
         }

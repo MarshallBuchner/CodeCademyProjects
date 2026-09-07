@@ -62,6 +62,9 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
+  // Shrink the layout when the soft keyboard opens (Chrome/Android; ignored elsewhere).
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
