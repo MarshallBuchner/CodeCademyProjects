@@ -265,7 +265,7 @@ function HowItWorks() {
           A plan that bends, not breaks
         </p>
         <h2 className="text-3xl font-bold leading-tight md:text-4xl">
-          Quitting isn&apos;t linear. Your plan shouldn&apos;t be either.
+          Quitting vaping isn&apos;t linear. Your plan shouldn&apos;t be either.
         </h2>
         <div className="mt-10 space-y-4">
           {steps.map((step) => (
