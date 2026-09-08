@@ -130,16 +130,16 @@ function Hero({ onStartPlan }: { onStartPlan: () => void }) {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-3 py-1 text-xs font-medium uppercase tracking-widest text-accent">
-              <span aria-hidden>✦</span> Free during beta · no credit card
+              <span aria-hidden>✦</span> Free during beta · quit vaping
             </p>
             <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
-              Slip once.{" "}
+              Quit vaping.{" "}
               <span className="text-accent">Don&apos;t start over.</span>
             </h1>
             <p className="mt-5 max-w-lg text-base leading-relaxed text-muted md:text-lg">
-              QuitCurve builds a personalized step-down plan that{" "}
+              A personalized step-down plan for people who vape.{" "}
               <strong className="font-medium text-foreground">
-                adapts after a slip
+                Slip once and QuitCurve adapts
               </strong>
               —so you keep your progress instead of resetting to day one.
             </p>
@@ -160,8 +160,7 @@ function Hero({ onStartPlan }: { onStartPlan: () => void }) {
               </a>
             </div>
             <p className="mt-4 text-xs text-muted">
-              Free during beta · no credit card · works on your phone browser
-              (Add to Home Screen)
+              Free during beta · no credit card · made for quitting vaping
             </p>
             <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
               <span>Private by design</span>
@@ -455,11 +454,11 @@ function CTASection({ onStartPlan }: { onStartPlan: () => void }) {
             Ready when you are
           </p>
           <h2 className="text-3xl font-bold leading-tight md:text-4xl">
-            You don&apos;t need another perfect Monday.
+            You don&apos;t need another perfect Monday to quit vaping.
           </h2>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted">
-            Start with where you are today. Your first personalized plan takes
-            about 60 seconds — free during beta, no credit card.
+            Start with where you are today. Your first personalized vape quit
+            plan takes about 60 seconds — free during beta, no credit card.
           </p>
           <button
             type="button"

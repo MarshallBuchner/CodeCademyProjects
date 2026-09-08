@@ -8,7 +8,7 @@ export const LANDING_FAQS: FaqItem[] = [
   {
     question: "Is QuitCurve free?",
     answer:
-      "Yes. QuitCurve is free during beta—no credit card. Build a plan, log cravings, and track money saved without paying.",
+      "Yes. QuitCurve is free during beta—no credit card. Build a vape quit plan, log cravings, and track money saved without paying.",
   },
   {
     question: "What happens if I slip?",
