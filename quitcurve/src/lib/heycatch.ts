@@ -1,5 +1,11 @@
 import { analytics } from "@heycatch/sdk";
 import type { UserProfile } from "@/lib/types";
+import {
+  trackTikTokCtaClicked,
+  trackTikTokOnboardingStarted,
+  trackTikTokPlanCreated,
+  trackTikTokSignupCompleted,
+} from "@/lib/tiktok-pixel";
 
 const PENDING_SIGNUP_KEY = "heycatch_pending_signup";
 const FIRST_CHECK_IN_KEY = "heycatch_first_check_in_sent";
@@ -34,15 +40,18 @@ export function identifyUser(
   const trackSignup = options?.trackSignup ?? consumePendingSignup();
   if (trackSignup) {
     analytics.trackEvent("signup_completed");
+    trackTikTokSignupCompleted();
   }
 }
 
 export function trackCtaClicked(properties?: { location?: string }): void {
   analytics.trackEvent("cta_clicked", properties);
+  trackTikTokCtaClicked(properties);
 }
 
 export function trackOnboardingStarted(): void {
   analytics.trackEvent("onboarding_started");
+  trackTikTokOnboardingStarted();
 }
 
 export function trackPlanCreated(properties?: {
@@ -50,6 +59,7 @@ export function trackPlanCreated(properties?: {
   guest?: boolean;
 }): void {
   analytics.trackEvent("plan_created", properties);
+  trackTikTokPlanCreated(properties);
 }
 
 export function trackOnboardingCompleted(properties?: {

@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { QuitCurveProvider } from "@/context/QuitCurveProvider";
+import { TikTokPixel } from "@/components/TikTokPixel";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <QuitCurveProvider>{children}</QuitCurveProvider>
+        <TikTokPixel />
         <Analytics />
         <SpeedInsights />
       </body>

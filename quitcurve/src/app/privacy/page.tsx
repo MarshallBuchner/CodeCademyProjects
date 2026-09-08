@@ -63,6 +63,12 @@ export default function PrivacyPage() {
               anonymous usage metrics via Vercel Analytics and Speed Insights
               (page views / performance — not your quit-plan content)
             </li>
+            <li>
+              <strong className="text-foreground">Ads measurement:</strong> when
+              we run TikTok ads, the TikTok Pixel may record page views and key
+              actions (for example starting a plan) so we can measure and improve
+              those ads — not to sell your quit-plan content
+            </li>
           </ul>
 
           <h2 className="text-lg font-semibold text-foreground">
@@ -105,6 +111,11 @@ export default function PrivacyPage() {
             <li>
               <strong className="text-foreground">Twilio</strong> — optional SMS
               reminders if you enable them (see twilio.com/legal/privacy)
+            </li>
+            <li>
+              <strong className="text-foreground">TikTok</strong> — advertising
+              pixel / events when we run TikTok ads (see
+              tiktok.com/legal/page/us/privacy-policy)
             </li>
           </ul>
 
