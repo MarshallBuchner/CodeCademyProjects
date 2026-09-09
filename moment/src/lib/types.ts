@@ -56,7 +56,8 @@ export type AppView =
   | "locked"
   | "unlocked";
 
-export const UNLOCK_RADIUS_METERS = 80;
+/** Arrive-to-unlock radius. ~150m tolerates phone GPS noise while driving/parking. */
+export const UNLOCK_RADIUS_METERS = 150;
 
 export const emptyDraft = (): DraftMoment => ({
   title: "",

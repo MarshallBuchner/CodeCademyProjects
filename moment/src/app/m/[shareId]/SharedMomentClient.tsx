@@ -4,10 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { JourneyMap } from "@/components/Maps";
 import { Logo, Wordmark } from "@/components/Logo";
+import { OpenInBrowserBanner } from "@/components/OpenInBrowserBanner";
+import { isInAppBrowser } from "@/lib/browser";
 import {
   distanceMeters,
   formatDistance,
-  getCurrentPosition,
+  watchPosition,
+  withinUnlockRadius,
+  type CoordsWithAccuracy,
 } from "@/lib/geo";
 import {
   capsuleToLocalMoment,
@@ -17,7 +21,7 @@ import {
   unsealCapsule,
   type SharedCapsule,
 } from "@/lib/share";
-import { UNLOCK_RADIUS_METERS, type Coords } from "@/lib/types";
+import { UNLOCK_RADIUS_METERS } from "@/lib/types";
 
 type Phase = "loading" | "pin" | "locked" | "unlocked" | "invalid";
 
@@ -26,10 +30,11 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
   const [capsule, setCapsule] = useState<SharedCapsule | null>(null);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
-  const [userCoords, setUserCoords] = useState<Coords | null>(null);
+  const [userCoords, setUserCoords] = useState<CoordsWithAccuracy | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const inAppBrowser = useMemo(() => isInAppBrowser(), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,25 +106,20 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
 
   useEffect(() => {
     if (phase !== "locked" && phase !== "unlocked") return;
-    let alive = true;
-    const tick = async () => {
-      try {
-        const coords = await getCurrentPosition();
-        if (alive) {
-          setUserCoords(coords);
-          setLocationError(null);
-        }
-      } catch {
-        if (alive) setLocationError("Need location to unlock this Moment");
-      }
-    };
-    void tick();
-    const id = window.setInterval(() => void tick(), 6000);
-    return () => {
-      alive = false;
-      window.clearInterval(id);
-    };
-  }, [phase]);
+    return watchPosition(
+      (coords) => {
+        setUserCoords(coords);
+        setLocationError(null);
+      },
+      () => {
+        setLocationError(
+          inAppBrowser
+            ? "Location blocked here — open this link in Safari or Chrome"
+            : "Need location to unlock this Moment",
+        );
+      },
+    );
+  }, [phase, inAppBrowser]);
 
   const distance = useMemo(() => {
     if (!capsule || !userCoords) return null;
@@ -134,8 +134,12 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
     }
     if (!capsule.locationLocked) return true;
     if (distance == null) return false;
-    return distance <= UNLOCK_RADIUS_METERS;
-  }, [capsule, distance]);
+    return withinUnlockRadius(
+      distance,
+      UNLOCK_RADIUS_METERS,
+      userCoords?.accuracy,
+    );
+  }, [capsule, distance, userCoords?.accuracy]);
 
   useEffect(() => {
     if (phase === "locked" && canUnlock) setPhase("unlocked");
@@ -225,6 +229,10 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         <p className="mt-2 text-sm text-muted">
           {capsule.senderName} left this at {capsule.placeName}. It opens only when you arrive.
         </p>
+        <OpenInBrowserBanner
+          force={Boolean(locationError)}
+          className="mt-4"
+        />
         <JourneyMap
           user={userCoords}
           target={capsule.coords}

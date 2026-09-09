@@ -13,6 +13,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import type { Coords } from "@/lib/types";
+import { UNLOCK_RADIUS_METERS } from "@/lib/types";
 import "leaflet/dist/leaflet.css";
 
 const amberIcon = L.divIcon({
@@ -144,7 +145,7 @@ export function JourneyMap({
         <Recenter center={center} zoom={user ? 14 : 15} />
         <Circle
           center={[target.lat, target.lng]}
-          radius={80}
+          radius={UNLOCK_RADIUS_METERS}
           pathOptions={{
             color: "#ff8a2a",
             fillColor: "#ff8a2a",
