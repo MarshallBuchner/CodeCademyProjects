@@ -5,29 +5,45 @@ User-facing: **marshallbuchner96@gmail.com** (change in `src/lib/brand.ts` if yo
 
 Outbound magic links should send from Resend (e.g. `MOMENT <noreply@yourdomain.com>`).
 
-## If magic links land logged-out
+## If magic links crash / land logged-out (iPhone)
 
 Default Supabase links use PKCE (`?code=`). That needs a **code-verifier cookie**
-from the **same browser** that requested the link. Opening the email in another
-browser/app (or losing cookies) breaks it.
+from the **same browser** that requested the link.
+
+Opening the email in **Mail / Gmail’s in-app browser** (or a different browser than
+the one that tapped “Email me a magic link”) breaks it — Safari often shows
+**“This page couldn’t load”**.
+
+### User workaround (works today)
+1. Open **https://moment-opal.vercel.app** in **Safari**
+2. Profile → Email me a magic link
+3. In Mail, **long-press** the link → **Open in Safari** (don’t tap once inside Mail)
 
 ### Fix A — already in code
 Callback at `/auth/callback` accepts:
 1. `token_hash` + `type` (no PKCE cookie)
 2. `code` (PKCE)
 
-### Fix B — Supabase email template (do once)
+Failed sign-ins now show a lightweight HTML explanation instead of a blank/crashy SPA load.
+
+### Fix B — Supabase email template (do once — recommended)
 Supabase → **Authentication** → **Email Templates** → **Magic Link**
 
-Set the button/link URL to:
+Replace the default `{{ .ConfirmationURL }}` button/link with:
 
 ```html
-<a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&next=/">
-  Sign in to MOMENT
-</a>
+<h2>Your sign-in link</h2>
+<p>Follow the link below to sign in. This link expires shortly and can only be used once.</p>
+<p>
+  <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&next=/">
+    Sign in to MOMENT
+  </a>
+</p>
 ```
 
-Save. New emails use `token_hash` and skip the PKCE cookie issue.
+Save. New emails use `token_hash` and skip the PKCE / in-app-browser crash.
+
+(Avoid stacking the default subject line + an extra “Your sign-in link” heading twice.)
 
 ### Redirect allow-list
 Supabase → Authentication → URL Configuration:
