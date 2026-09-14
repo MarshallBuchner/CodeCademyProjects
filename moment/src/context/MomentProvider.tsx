@@ -61,6 +61,8 @@ type MomentContextValue = {
   openMoment: (id: string) => void;
   markUnlocked: (id: string) => void;
   saveMomentKeep: (id: string) => void;
+  saveReceivedMoment: (record: MomentRecord) => void;
+  renameMoment: (id: string, title: string) => void;
   deleteMoment: (id: string) => void;
   dismissWelcome: () => void;
   seedDemo: () => Promise<void>;
@@ -276,6 +278,7 @@ export function MomentProvider({ children }: { children: ReactNode }) {
       placeSubtitle: draft.placeSubtitle?.trim() || undefined,
       coords: draft.coords,
       note: draft.note.trim(),
+      songUrl: draft.songUrl?.trim() || undefined,
       media: draft.media,
       locationLocked: draft.locationLocked,
       timeLocked: draft.timeLocked,
@@ -346,6 +349,43 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     );
     setView("unlocked");
   }, []);
+
+
+  const saveReceivedMoment = useCallback(
+    (record: MomentRecord) => {
+      setMoments((prev) => {
+        const next = [
+          record,
+          ...prev.filter(
+            (m) =>
+              m.id !== record.id &&
+              !(record.sourceShareId && m.sourceShareId === record.sourceShareId),
+          ),
+        ];
+        if (cloudUser) void upsertCloudMoments(cloudUser.id, [record]);
+        return next;
+      });
+    },
+    [cloudUser],
+  );
+
+  const renameMoment = useCallback(
+    (id: string, title: string) => {
+      const trimmed = title.trim();
+      if (!trimmed) return;
+      setMoments((prev) => {
+        const next = prev.map((m) =>
+          m.id === id ? { ...m, title: trimmed } : m,
+        );
+        if (cloudUser) {
+          const updated = next.find((m) => m.id === id);
+          if (updated) void upsertCloudMoments(cloudUser.id, [updated]);
+        }
+        return next;
+      });
+    },
+    [cloudUser],
+  );
 
   const saveMomentKeep = useCallback((id: string) => {
     setMoments((prev) =>
@@ -476,6 +516,8 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     openMoment,
     markUnlocked,
     saveMomentKeep,
+    saveReceivedMoment,
+    renameMoment,
     deleteMoment,
     dismissWelcome,
     seedDemo,
