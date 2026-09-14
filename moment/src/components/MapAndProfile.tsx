@@ -7,7 +7,12 @@ import { MomentsOverviewMap } from "@/components/Maps";
 import { MomentOverflowMenu } from "@/components/MomentOverflowMenu";
 import { useMoment } from "@/context/MomentProvider";
 import { distanceMeters, formatDistance } from "@/lib/geo";
-import { loadOutbox, type OutboundShare } from "@/lib/share";
+import {
+  loadOutbox,
+  refreshOutboxOpenedStatus,
+  type OutboundShare,
+} from "@/lib/share";
+import { relativeTime } from "@/lib/format";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export function MapView() {
@@ -100,14 +105,28 @@ export function ProfileView() {
     syncNow,
   } = useMoment();
   const unlocked = moments.filter((m) => m.unlockedAt).length;
-  const [outbox, setOutbox] = useState<OutboundShare[]>([]);
+  const [outbox, setOutbox] = useState<OutboundShare[]>(() => loadOutbox());
   const [email, setEmail] = useState("");
   const [authMsg, setAuthMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const cloudReady = isSupabaseConfigured();
 
   useEffect(() => {
-    setOutbox(loadOutbox());
+    let cancelled = false;
+    async function refresh() {
+      try {
+        const next = await refreshOutboxOpenedStatus();
+        if (!cancelled) setOutbox(next);
+      } catch {
+        // keep local outbox
+      }
+    }
+    void refresh();
+    const id = window.setInterval(() => void refresh(), 45_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
   }, []);
 
   async function onSignIn() {
@@ -219,6 +238,7 @@ export function ProfileView() {
           <p className="text-sm font-medium">Sent privately</p>
           <p className="mt-1 text-xs text-muted">
             Secret links only work for people you send them to (plus optional PIN).
+            Status updates when they arrive and unlock — like a read receipt.
           </p>
           {outbox.length === 0 ? (
             <p className="mt-3 text-xs text-muted">No shared Moments yet.</p>
@@ -229,10 +249,26 @@ export function ProfileView() {
                   key={s.shareId}
                   className="rounded-xl border border-white/8 bg-black/25 px-3 py-2"
                 >
-                  <p className="text-sm">{s.title}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm">{s.title}</p>
+                    <span
+                      className={
+                        s.openedAt
+                          ? "shrink-0 text-[11px] font-medium text-accent"
+                          : "shrink-0 text-[11px] text-muted"
+                      }
+                    >
+                      {s.openedAt ? "Opened" : "Waiting"}
+                    </span>
+                  </div>
                   <p className="text-xs text-muted">
                     For {s.recipientName} · {s.placeName}
                   </p>
+                  {s.openedAt ? (
+                    <p className="mt-0.5 text-[11px] text-accent/90">
+                      Unlocked {relativeTime(s.openedAt)}
+                    </p>
+                  ) : null}
                 </li>
               ))}
             </ul>
