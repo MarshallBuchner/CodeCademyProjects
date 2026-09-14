@@ -192,21 +192,28 @@ export function createCapsuleFromMoment(input: {
   };
 }
 
-export function capsuleToLocalMoment(capsule: SharedCapsule): MomentRecord {
+export function capsuleToLocalMoment(
+  capsule: SharedCapsule,
+  opts?: { unlocked?: boolean },
+): MomentRecord {
+  const unlocked = Boolean(opts?.unlocked);
   return {
-    id: `shared_${capsule.shareId}`,
+    id: `received_${capsule.shareId}`,
     title: capsule.title,
     placeName: capsule.placeName,
     placeSubtitle: capsule.placeSubtitle,
     coords: capsule.coords,
     note: capsule.note,
     media: capsule.media,
-    locationLocked: capsule.locationLocked,
-    timeLocked: capsule.timeLocked,
-    unlockAt: capsule.unlockAt,
+    locationLocked: unlocked ? false : capsule.locationLocked,
+    timeLocked: unlocked ? false : capsule.timeLocked,
+    unlockAt: unlocked ? undefined : capsule.unlockAt,
     annualTradition: capsule.annualTradition,
     createdAt: capsule.createdAt,
-    saved: false,
+    unlockedAt: unlocked ? new Date().toISOString() : undefined,
+    saved: true,
+    receivedFrom: capsule.senderName,
+    sourceShareId: capsule.shareId,
   };
 }
 

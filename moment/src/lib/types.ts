@@ -29,6 +29,10 @@ export type MomentRecord = {
   createdAt: string;
   unlockedAt?: string;
   saved: boolean;
+  /** Set when this Moment was received from someone else */
+  receivedFrom?: string;
+  /** Share id (link or account share) used for idempotent save */
+  sourceShareId?: string;
 };
 
 export type DraftMoment = {

@@ -156,6 +156,8 @@ export function mergeMoments(
       ...prefer,
       unlockedAt: m.unlockedAt || prev.unlockedAt,
       saved: m.saved || prev.saved,
+      receivedFrom: m.receivedFrom || prev.receivedFrom,
+      sourceShareId: m.sourceShareId || prev.sourceShareId,
     });
   }
   return Array.from(map.values()).sort(

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useMoment } from "@/context/MomentProvider";
 import { JourneyMap } from "@/components/Maps";
 import { Logo, Wordmark } from "@/components/Logo";
 import { OpenInBrowserBanner } from "@/components/OpenInBrowserBanner";
@@ -35,6 +36,8 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const inAppBrowser = useMemo(() => isInAppBrowser(), []);
+  const { saveReceivedMoment, isShareSaved } = useMoment();
+  const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
 
   useEffect(() => {
     let cancelled = false;
@@ -158,6 +161,23 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
     setPhase("locked");
   }
 
+
+  useEffect(() => {
+    if (!capsule) return;
+    if (isShareSaved(capsule.shareId)) setSaveState("saved");
+  }, [capsule, isShareSaved]);
+
+  function saveToMyMoments(unlocked: boolean) {
+    if (!capsule) return;
+    try {
+      const record = capsuleToLocalMoment(capsule, { unlocked });
+      saveReceivedMoment(record);
+      setSaveState("saved");
+    } catch {
+      setSaveState("error");
+    }
+  }
+
   if (phase === "loading") {
     return (
       <div className="grid min-h-dvh place-items-center bg-background px-6 text-center">
@@ -257,6 +277,21 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         <p className="mt-auto pt-6 text-center text-xs text-muted">
           This Moment unlocks when you arrive — location required.
         </p>
+        <button
+          type="button"
+          className="btn-ghost mt-3 w-full"
+          onClick={() => saveToMyMoments(false)}
+          disabled={saveState === "saved"}
+        >
+          {saveState === "saved"
+            ? "Saved to My Moments"
+            : "Save for later · open from MOMENT"}
+        </button>
+        {saveState === "error" && (
+          <p className="mt-2 text-center text-xs text-amber-300">
+            Couldn&apos;t save on this device. Try again.
+          </p>
+        )}
       </main>
     );
   }
@@ -339,9 +374,28 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         )}
       </article>
 
-      <Link href="/" className="btn-primary mt-auto text-center">
-        Open MOMENT app
-      </Link>
+      <div className="mt-auto flex flex-col gap-3 pt-6">
+        <button
+          type="button"
+          className="btn-primary w-full"
+          onClick={() => saveToMyMoments(true)}
+          disabled={saveState === "saved"}
+        >
+          {saveState === "saved" ? "Saved to My Moments" : "Save to My Moments"}
+        </button>
+        {saveState === "error" && (
+          <p className="text-center text-xs text-amber-300">
+            Couldn&apos;t save on this device. Try again.
+          </p>
+        )}
+        <Link href="/" className="btn-ghost w-full text-center">
+          {saveState === "saved" ? "Open in MOMENT" : "Open MOMENT app"}
+        </Link>
+        <p className="text-center text-xs text-muted">
+          Saving keeps this Moment in Your Moments so you don&apos;t need the
+          chat link again.
+        </p>
+      </div>
     </main>
   );
 }

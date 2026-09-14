@@ -55,3 +55,28 @@ export function uid(): string {
   }
   return `m_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
+
+
+/** Insert or replace a received Moment (idempotent by sourceShareId / id). */
+export function upsertReceivedMoment(record: MomentRecord): MomentRecord[] {
+  const prev = loadMoments();
+  const next = [
+    record,
+    ...prev.filter(
+      (m) =>
+        m.id !== record.id &&
+        !(record.sourceShareId && m.sourceShareId === record.sourceShareId),
+    ),
+  ];
+  saveMoments(next);
+  return next;
+}
+
+export function findMomentByShareId(shareId: string): MomentRecord | undefined {
+  return loadMoments().find(
+    (m) =>
+      m.sourceShareId === shareId ||
+      m.id === `received_${shareId}` ||
+      m.id === `shared_${shareId}`,
+  );
+}

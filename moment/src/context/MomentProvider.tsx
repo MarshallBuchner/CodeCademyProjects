@@ -19,6 +19,7 @@ import {
 } from "@/lib/geo";
 import {
   hasSeenWelcome,
+  findMomentByShareId,
   loadMoments,
   markWelcomeSeen,
   saveMoments,
@@ -75,6 +76,9 @@ type MomentContextValue = {
   signInWithEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   syncNow: () => Promise<void>;
+  /** Save a Moment someone shared with you into Your Moments */
+  saveReceivedMoment: (record: MomentRecord) => void;
+  isShareSaved: (shareId: string) => boolean;
 };
 
 const MomentContext = createContext<MomentContextValue | null>(null);
@@ -109,6 +113,40 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     setCloudStatus("Syncing…");
     try {
       const local = loadMoments();
+      // Pull account-delivered shares into this user's Moments list
+      try {
+        const { fetchReceivedShares } = await import("@/lib/supabase/sharing");
+        const received = await fetchReceivedShares(cloudUser.id);
+        for (const share of received) {
+          if (!share.moment) continue;
+          const id = `received_acct_${share.id}`;
+          if (local.some((m) => m.id === id || m.sourceShareId === share.id)) {
+            continue;
+          }
+          local.unshift({
+            id,
+            title: share.moment.title,
+            placeName: share.moment.placeName,
+            placeSubtitle: share.moment.placeSubtitle,
+            coords: share.moment.coords,
+            note: share.moment.note,
+            media: share.moment.media,
+            locationLocked: share.unlocked ? false : share.moment.locationLocked,
+            timeLocked: share.unlocked ? false : share.moment.timeLocked,
+            unlockAt: share.unlocked ? undefined : share.moment.unlockAt,
+            annualTradition: share.moment.annualTradition,
+            createdAt: share.moment.createdAt,
+            unlockedAt: share.unlocked
+              ? share.createdAt
+              : undefined,
+            saved: true,
+            receivedFrom: share.senderName,
+            sourceShareId: share.id,
+          });
+        }
+      } catch {
+        // Sharing table / RLS may be unavailable — keep normal sync
+      }
       await upsertCloudMoments(cloudUser.id, local);
       const remote = await fetchCloudMoments(cloudUser.id);
       const merged = mergeMoments(local, remote);
@@ -457,6 +495,39 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     markUnlocked(activeMoment.id);
   }, [view, activeMoment, canUnlockActive, markUnlocked]);
 
+
+  const saveReceivedMoment = useCallback(
+    (record: MomentRecord) => {
+      setMoments((prev) => {
+        const next = [
+          record,
+          ...prev.filter(
+            (m) =>
+              m.id !== record.id &&
+              !(record.sourceShareId && m.sourceShareId === record.sourceShareId),
+          ),
+        ];
+        saveMoments(next);
+        if (cloudUser) {
+          void upsertCloudMoments(cloudUser.id, [record]);
+        }
+        return next;
+      });
+    },
+    [cloudUser],
+  );
+
+  const isShareSaved = useCallback(
+    (shareId: string) =>
+      moments.some(
+        (m) =>
+          m.sourceShareId === shareId ||
+          m.id === `received_${shareId}` ||
+          m.id === `shared_${shareId}`,
+      ) || Boolean(findMomentByShareId(shareId)),
+    [moments],
+  );
+
   const value: MomentContextValue = {
     ready,
     view,
@@ -488,6 +559,8 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     signInWithEmail,
     signOut,
     syncNow,
+    saveReceivedMoment,
+    isShareSaved,
   };
 
   return (
