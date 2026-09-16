@@ -32,6 +32,8 @@ export type OutboundShare = {
   placeName: string;
   createdAt: string;
   urlPath: string;
+  /** Set when recipient unlocks (read receipt) */
+  openedAt?: string;
 };
 
 const SHARE_OUTBOX = "moment.shares.outbox.v1";
@@ -118,6 +120,10 @@ export async function publishShortShareLink(input: {
   shareId: string;
   accessKey: string;
   sealed: string;
+  senderEmail?: string;
+  recipientName?: string;
+  placeName?: string;
+  title?: string;
 }): Promise<{ path: string } | { error: string }> {
   try {
     const res = await fetch("/api/share-links", {
@@ -133,6 +139,59 @@ export async function publishShortShareLink(input: {
   } catch {
     return { error: "Could not create short link (network)" };
   }
+}
+
+export async function reportShareOpened(
+  shareId: string,
+  accessKey: string,
+): Promise<{ openedAt?: string } | null> {
+  try {
+    const res = await fetch(
+      `/api/share-links/${encodeURIComponent(shareId)}/opened?k=${encodeURIComponent(accessKey)}`,
+      { method: "POST" },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as { openedAt?: string };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchShareOpenedAt(
+  shareId: string,
+  accessKey: string,
+): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `/api/share-links/${encodeURIComponent(shareId)}/opened?k=${encodeURIComponent(accessKey)}`,
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { openedAt?: string | null };
+    return data.openedAt ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function markOutboundOpened(shareId: string, openedAt: string) {
+  const prev = loadOutbox();
+  const next = prev.map((s) =>
+    s.shareId === shareId ? { ...s, openedAt: s.openedAt || openedAt } : s,
+  );
+  saveOutbox(next);
+}
+
+export async function refreshOutboxOpenedStatus(): Promise<OutboundShare[]> {
+  const items = loadOutbox();
+  const updated = await Promise.all(
+    items.map(async (s) => {
+      if (s.openedAt) return s;
+      const openedAt = await fetchShareOpenedAt(s.shareId, s.accessKey);
+      return openedAt ? { ...s, openedAt } : s;
+    }),
+  );
+  saveOutbox(updated);
+  return updated;
 }
 
 export async function fetchSealedShareLink(

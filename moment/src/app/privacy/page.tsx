@@ -58,8 +58,10 @@ export default function PrivacyPage() {
         </h2>
         <p>
           We use your data to run MOMENT: store and sync Moments you create,
-          unlock them at the right place, deliver private shares you send, and
-          improve reliability. We do not sell your personal data.
+          unlock them at the right place, deliver private shares you send,
+          optionally email you a one-time notice when someone unlocks a Moment
+          you shared (like a read receipt), and improve reliability. We do not
+          sell your personal data.
         </p>
 
         <h2 className="text-lg font-semibold text-foreground">Data storage</h2>
@@ -84,8 +86,8 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="text-foreground">Resend</strong> — transactional
-            email for magic links when configured
-            (resend.com/legal/privacy-policy)
+            email for magic links and optional “Moment opened” read-receipt
+            notices when configured (resend.com/legal/privacy-policy)
           </li>
           <li>
             <strong className="text-foreground">OpenStreetMap / Nominatim</strong>{" "}
@@ -99,7 +101,9 @@ export default function PrivacyPage() {
         <p>
           Moments you drop are private by default. Shared Moments are only
           accessible to people you choose (secret link and/or account email).
-          Recipients still need to be at the place to unlock content. Do not
+          Recipients still need to be at the place to unlock content. When they
+          unlock a secret link you created while signed in, we may email your
+          account address once and show an “Opened” status in Profile. Do not
           leave Moments that put anyone at risk or reveal sensitive personal
           information of others without consent.
         </p>

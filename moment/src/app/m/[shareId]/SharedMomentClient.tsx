@@ -19,6 +19,7 @@ import {
   fetchSealedShareLink,
   getInboxCapsule,
   rememberInbox,
+  reportShareOpened,
   unsealCapsule,
   type SharedCapsule,
 } from "@/lib/share";
@@ -38,6 +39,7 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
   const [showMap, setShowMap] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const openedReportedRef = useRef(false);
   const inAppBrowser = useMemo(() => isInAppBrowser(), []);
 
   useEffect(() => {
@@ -181,6 +183,13 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
   useEffect(() => {
     if (phase === "locked" && canUnlock) setPhase("unlocked");
   }, [phase, canUnlock]);
+
+  // Read receipt: notify sender once when recipient unlocks (arrives)
+  useEffect(() => {
+    if (phase !== "unlocked" || !capsule || openedReportedRef.current) return;
+    openedReportedRef.current = true;
+    void reportShareOpened(capsule.shareId, capsule.accessKey);
+  }, [phase, capsule]);
 
   function submitPin() {
     if (!capsule?.passcode) {
