@@ -168,7 +168,7 @@ export function createCapsuleFromMoment(input: {
     if (m.kind === "note") return true;
     if (m.kind === "voice") return m.payload.length < 400_000;
     if (m.kind === "photo") return m.payload.length < 900_000;
-    if (m.kind === "video") return m.payload.length < 8_000_000;
+    if (m.kind === "video") return m.payload.length < 3_500_000;
     return false;
   });
 

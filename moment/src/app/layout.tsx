@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
-import { MomentProvider } from "@/context/MomentProvider";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -75,7 +74,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${body.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <MomentProvider>{children}</MomentProvider>
+        {children}
         <Analytics />
       </body>
     </html>
