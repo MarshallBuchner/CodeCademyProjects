@@ -28,13 +28,14 @@ const amberIcon = L.divIcon({
   iconAnchor: [9, 9],
 });
 
+/** CSS lock — emoji pins have crashed WebKit marker paths on some iPhones. */
 const lockIcon = L.divIcon({
   className: "moment-lock",
   html: `<div style="
     width:36px;height:36px;border-radius:999px;display:grid;place-items:center;
     background:#12131a;border:2px solid #ff8a2a;
-    box-shadow:0 0 24px rgba(255,138,42,0.45);color:#ffb067;font-size:14px;
-  ">🔒</div>`,
+    box-shadow:0 0 24px rgba(255,138,42,0.45);
+  "><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffb067" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>`,
   iconSize: [36, 36],
   iconAnchor: [18, 18],
 });
@@ -63,20 +64,14 @@ function MoveReporter({
 
 // CARTO free basemaps now require an API key (watermark otherwise).
 // Esri World Dark Gray works without a key for light personal use.
+// Single layer only — dual TileLayers spike Safari tile decode memory.
 const darkTiles =
   "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}";
-const darkLabels =
-  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}";
 const attribution =
   'Tiles &copy; <a href="https://www.esri.com/">Esri</a>';
 
 function DarkBasemap() {
-  return (
-    <>
-      <TileLayer url={darkTiles} attribution={attribution} />
-      <TileLayer url={darkLabels} attribution="" />
-    </>
-  );
+  return <TileLayer url={darkTiles} attribution={attribution} />;
 }
 
 type PickMapProps = {

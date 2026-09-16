@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { DeferredMap } from "@/components/DeferredMap";
 import { PlacePickerMap } from "@/components/Maps";
 import { useMoment } from "@/context/MomentProvider";
 import { useKeyboardInset, scrollFieldIntoView } from "@/hooks/useKeyboardInset";
@@ -157,11 +158,13 @@ export function DropPlace() {
         </p>
       )}
 
-      <PlacePickerMap
-        center={mapCenter}
-        className="mt-4 h-[300px]"
-        onCenterChange={onMapMoved}
-      />
+      <DeferredMap className="mt-4 h-[300px]">
+        <PlacePickerMap
+          center={mapCenter}
+          className="h-[300px]"
+          onCenterChange={onMapMoved}
+        />
+      </DeferredMap>
 
       <div className="mt-3 flex gap-2">
         <button type="button" className="btn-ghost flex-1 text-sm" onClick={() => void useMyLocation()}>
@@ -276,18 +279,21 @@ export function DropRecord() {
 
   async function onVideo(file: File | null) {
     if (!file) return;
-    // ~2.5MB data-URL ceiling keeps share links / localStorage workable
-    // ~12 MB keeps ~10–20s phone clips workable for local Moments.
-    // Share links still strip oversized video (see share.ts).
-    if (file.size > 12 * 1024 * 1024) {
+    // Data-URL + localStorage path — keep under ~3.5 MB raw to avoid Safari OOM.
+    // Longer clips need cloud/blob storage (not yet). Share links strip oversized video.
+    if (file.size > 3.5 * 1024 * 1024) {
       alert(
-        "That video is a bit large (keep under ~12 MB / about 15–20 seconds). Trim it in Photos, then try again.",
+        "That video is a bit large for this device (keep under ~3.5 MB / about 8–12 seconds). Trim it in Photos, then try again.",
       );
       return;
     }
     setBusy(true);
     try {
       const dataUrl = await readFileAsDataUrl(file);
+      if (dataUrl.length > 4_500_000) {
+        alert("That video is too large to keep on this phone. Try a shorter clip.");
+        return;
+      }
       upsertMedia({
         kind: "video",
         payload: dataUrl,
@@ -422,11 +428,12 @@ export function DropRecord() {
                 src={video.payload}
                 controls
                 playsInline
+                preload="metadata"
                 className="h-44 w-full rounded-xl object-cover bg-black"
               />
             ) : (
               <p className="py-6 text-center text-sm text-muted">
-                Pick a short clip from your camera roll (under ~12 MB / ~15–20 sec), or record a new one.
+                Pick a short clip from your camera roll (under ~3.5 MB / ~8–12 sec), or record a new one.
               </p>
             )}
             <label className="btn-primary w-full cursor-pointer text-center">

@@ -1,4 +1,5 @@
 import { AccountSettings } from "@/components/AccountSettings";
+import { MomentAppProvider } from "@/components/MomentAppProvider";
 
 export const metadata = {
   title: "Account — MOMENT",
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function AccountPage() {
-  return <AccountSettings />;
+  return (
+    <MomentAppProvider>
+      <AccountSettings />
+    </MomentAppProvider>
+  );
 }

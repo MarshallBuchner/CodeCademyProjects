@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { DeferredMap } from "@/components/DeferredMap";
 import { JourneyMap } from "@/components/Maps";
 import { MomentOverflowMenu } from "@/components/MomentOverflowMenu";
 import { ShareMomentModal } from "@/components/ShareMomentModal";
@@ -71,12 +72,14 @@ export function LockedView() {
           : ""}
       </p>
 
-      <JourneyMap
-        user={userCoords}
-        target={activeMoment.coords}
-        className="mt-5 h-[300px]"
-        unlocked={false}
-      />
+      <DeferredMap className="mt-5 h-[300px]">
+        <JourneyMap
+          user={userCoords}
+          target={activeMoment.coords}
+          className="h-[300px]"
+          unlocked={false}
+        />
+      </DeferredMap>
 
       <div className="mt-6 text-center">
         <p className="font-display text-4xl tracking-wide text-accent glow-text">
@@ -290,6 +293,7 @@ export function UnlockedView() {
             src={video.payload}
             controls
             playsInline
+            preload="none"
             className="mt-4 h-44 w-full rounded-2xl object-cover bg-black"
           />
         )}

@@ -1,5 +1,10 @@
 import { AppShell } from "@/components/AppShell";
+import { MomentAppProvider } from "@/components/MomentAppProvider";
 
 export default function Page() {
-  return <AppShell />;
+  return (
+    <MomentAppProvider>
+      <AppShell />
+    </MomentAppProvider>
+  );
 }

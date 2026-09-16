@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  Component,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { MapSafeBoundary } from "@/components/MapSafeBoundary";
 import { JourneyMap } from "@/components/Maps";
 import { Logo, Wordmark } from "@/components/Logo";
 import { OpenInBrowserBanner } from "@/components/OpenInBrowserBanner";
@@ -32,20 +26,6 @@ import { loadMoments, saveMoments } from "@/lib/storage";
 import { UNLOCK_RADIUS_METERS } from "@/lib/types";
 
 type Phase = "loading" | "pin" | "locked" | "unlocked" | "invalid";
-
-/** Catch Leaflet crashes so Safari doesn't kill the whole tab. */
-class MapSafeBoundary extends Component<
-  { children: ReactNode; fallback: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
 
 export function SharedMomentClient({ shareId }: { shareId: string }) {
   const [phase, setPhase] = useState<Phase>("loading");

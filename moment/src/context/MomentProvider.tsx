@@ -92,6 +92,7 @@ export function MomentProvider({ children }: { children: ReactNode }) {
   const [cloudUser, setCloudUser] = useState<CloudUser | null>(null);
   const [cloudStatus, setCloudStatus] = useState("Guest · local only");
   const syncing = useRef(false);
+  const skipNextPersist = useRef(true);
 
   useEffect(() => {
     const stored = loadMoments();
@@ -102,6 +103,11 @@ export function MomentProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
+    // Avoid stringify+setItem on first hydrate — doubles memory and can OOM Safari.
+    if (skipNextPersist.current) {
+      skipNextPersist.current = false;
+      return;
+    }
     saveMoments(moments);
   }, [moments, ready]);
 
@@ -199,7 +205,12 @@ export function MomentProvider({ children }: { children: ReactNode }) {
 
   const refreshLocation = useCallback(async () => {
     try {
-      const coords = await getCurrentPosition();
+      // Background polls stay low-accuracy; unlock screens can pass high-accuracy via watch.
+      const coords = await getCurrentPosition({
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 30000,
+      });
       setUserCoords(coords);
       setLocationError(null);
       return coords;
@@ -220,7 +231,7 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     void refreshLocation();
     const id = window.setInterval(() => {
       void refreshLocation();
-    }, 8000);
+    }, 20000);
     return () => window.clearInterval(id);
   }, [ready, view, refreshLocation]);
 

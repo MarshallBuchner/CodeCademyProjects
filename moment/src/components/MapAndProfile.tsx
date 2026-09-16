@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
+import { DeferredMap } from "@/components/DeferredMap";
 import { MomentsOverviewMap } from "@/components/Maps";
 import { MomentOverflowMenu } from "@/components/MomentOverflowMenu";
 import { useMoment } from "@/context/MomentProvider";
@@ -31,16 +32,18 @@ export function MapView() {
         <p className="mt-1 text-sm text-muted">
           Your Moments on a live map — tap a pin to open.
         </p>
-        <MomentsOverviewMap
-          user={userCoords}
-          points={moments.map((m) => ({
-            id: m.id,
-            coords: m.coords,
-            unlocked: Boolean(m.unlockedAt),
-          }))}
-          className="mt-5 h-[340px]"
-          onSelect={openMoment}
-        />
+        <DeferredMap className="mt-5 h-[340px]">
+          <MomentsOverviewMap
+            user={userCoords}
+            points={moments.map((m) => ({
+              id: m.id,
+              coords: m.coords,
+              unlocked: Boolean(m.unlockedAt),
+            }))}
+            className="h-[340px]"
+            onSelect={openMoment}
+          />
+        </DeferredMap>
         <ul className="mt-5 flex flex-col gap-2">
           {moments.map((m) => {
             const dist =
