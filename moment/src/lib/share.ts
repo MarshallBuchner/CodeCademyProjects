@@ -14,6 +14,7 @@ export type SharedCapsule = {
   placeSubtitle?: string;
   coords: Coords;
   note: string;
+  songUrl?: string;
   media: MomentMedia[];
   locationLocked: boolean;
   timeLocked: boolean;
@@ -167,7 +168,7 @@ export function createCapsuleFromMoment(input: {
     if (m.kind === "note") return true;
     if (m.kind === "voice") return m.payload.length < 400_000;
     if (m.kind === "photo") return m.payload.length < 900_000;
-    if (m.kind === "video") return m.payload.length < 1_400_000;
+    if (m.kind === "video") return m.payload.length < 8_000_000;
     return false;
   });
 
@@ -183,6 +184,7 @@ export function createCapsuleFromMoment(input: {
     placeSubtitle: input.moment.placeSubtitle,
     coords: input.moment.coords,
     note: input.moment.note,
+    songUrl: input.moment.songUrl,
     media,
     locationLocked: input.moment.locationLocked,
     timeLocked: input.moment.timeLocked,
@@ -192,21 +194,29 @@ export function createCapsuleFromMoment(input: {
   };
 }
 
-export function capsuleToLocalMoment(capsule: SharedCapsule): MomentRecord {
+export function capsuleToLocalMoment(
+  capsule: SharedCapsule,
+  opts?: { unlocked?: boolean },
+): MomentRecord {
+  const unlocked = Boolean(opts?.unlocked);
   return {
-    id: `shared_${capsule.shareId}`,
+    id: `received_${capsule.shareId}`,
     title: capsule.title,
     placeName: capsule.placeName,
     placeSubtitle: capsule.placeSubtitle,
     coords: capsule.coords,
     note: capsule.note,
+    songUrl: capsule.songUrl,
     media: capsule.media,
-    locationLocked: capsule.locationLocked,
-    timeLocked: capsule.timeLocked,
-    unlockAt: capsule.unlockAt,
+    locationLocked: unlocked ? false : capsule.locationLocked,
+    timeLocked: unlocked ? false : capsule.timeLocked,
+    unlockAt: unlocked ? undefined : capsule.unlockAt,
     annualTradition: capsule.annualTradition,
     createdAt: capsule.createdAt,
-    saved: false,
+    unlockedAt: unlocked ? new Date().toISOString() : undefined,
+    saved: true,
+    receivedFrom: capsule.senderName,
+    sourceShareId: capsule.shareId,
   };
 }
 

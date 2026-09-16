@@ -118,7 +118,11 @@ export function Home() {
                       <p className="truncate font-medium text-foreground">{m.title}</p>
                       <p className="mt-0.5 truncate text-sm text-muted">{m.placeName}</p>
                       <p className="mt-1 text-xs text-muted/80">
-                        {m.annualTradition
+                        {m.receivedFrom
+                          ? m.unlockedAt
+                            ? `From ${m.receivedFrom} · unlocked`
+                            : `From ${m.receivedFrom}`
+                          : m.annualTradition
                           ? m.unlockedAt
                             ? `Tradition opened · ${relativeTime(m.unlockedAt)}`
                             : `Yearly tradition · opens ${m.unlockAt ? formatShortDate(m.unlockAt) : "next year"}`

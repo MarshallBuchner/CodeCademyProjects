@@ -5,9 +5,10 @@ import { useEffect, useId, useRef, useState } from "react";
 type Props = {
   momentTitle: string;
   onDelete: () => void;
+  onRename?: (title: string) => void;
 };
 
-export function MomentOverflowMenu({ momentTitle, onDelete }: Props) {
+export function MomentOverflowMenu({ momentTitle, onDelete, onRename }: Props) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -64,6 +65,24 @@ export function MomentOverflowMenu({ momentTitle, onDelete }: Props) {
           role="menu"
           className="absolute right-0 top-10 z-30 min-w-[148px] overflow-hidden rounded-2xl border border-white/12 bg-[#14181f] py-1 shadow-[0_12px_40px_rgba(0,0,0,0.55)]"
         >
+          {onRename ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-sm text-foreground transition hover:bg-white/6"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(false);
+                const next = window.prompt("Edit title", momentTitle);
+                if (next != null && next.trim()) onRename(next.trim());
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              Edit title
+            </button>
+          ) : null}
           <button
             type="button"
             role="menuitem"

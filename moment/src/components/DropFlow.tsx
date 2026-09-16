@@ -277,9 +277,11 @@ export function DropRecord() {
   async function onVideo(file: File | null) {
     if (!file) return;
     // ~2.5MB data-URL ceiling keeps share links / localStorage workable
-    if (file.size > 1.8 * 1024 * 1024) {
+    // ~12 MB keeps ~10–20s phone clips workable for local Moments.
+    // Share links still strip oversized video (see share.ts).
+    if (file.size > 12 * 1024 * 1024) {
       alert(
-        "Video is a bit large for this prototype (keep under ~1.8 MB). Trim it or use a short clip.",
+        "That video is a bit large (keep under ~12 MB / about 15–20 seconds). Trim it in Photos, then try again.",
       );
       return;
     }
@@ -424,7 +426,7 @@ export function DropRecord() {
               />
             ) : (
               <p className="py-6 text-center text-sm text-muted">
-                Pick a clip from your camera roll (under ~1.8 MB), or record a new one.
+                Pick a short clip from your camera roll (under ~12 MB / ~15–20 sec), or record a new one.
               </p>
             )}
             <label className="btn-primary w-full cursor-pointer text-center">
@@ -541,6 +543,21 @@ export function DropLeave() {
       </button>
       <h1 className="font-display text-3xl tracking-wide">Leave it here</h1>
       <p className="mt-1 text-sm text-muted">Lock the Moment to this place.</p>
+
+      <label className="mt-5 block text-xs tracking-wide text-muted uppercase">
+        Song link (optional)
+        <input
+          className="field mt-2 normal-case tracking-normal"
+          type="url"
+          inputMode="url"
+          placeholder="https://open.spotify.com/track/…"
+          value={draft.songUrl ?? ""}
+          onChange={(e) => setDraft({ songUrl: e.target.value.trim() || undefined })}
+        />
+        <span className="mt-1.5 block text-[11px] normal-case tracking-normal text-muted/80">
+          Spotify, Apple Music, YouTube — opens when they unlock.
+        </span>
+      </label>
 
       <div className="mt-6 rounded-[22px] border border-white/8 bg-card p-4">
         <div className="flex items-start justify-between gap-3">
