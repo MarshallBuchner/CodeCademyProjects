@@ -62,6 +62,10 @@ type MomentContextValue = {
   openMoment: (id: string) => void;
   markUnlocked: (id: string) => void;
   saveMomentKeep: (id: string) => void;
+  /** Save a Moment someone shared with you into Your Moments */
+  saveReceivedMoment: (record: MomentRecord) => void;
+  isShareSaved: (shareId: string) => boolean;
+  renameMoment: (id: string, title: string) => void;
   deleteMoment: (id: string) => void;
   dismissWelcome: () => void;
   seedDemo: () => Promise<void>;
@@ -76,9 +80,6 @@ type MomentContextValue = {
   signInWithEmail: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   syncNow: () => Promise<void>;
-  /** Save a Moment someone shared with you into Your Moments */
-  saveReceivedMoment: (record: MomentRecord) => void;
-  isShareSaved: (shareId: string) => boolean;
 };
 
 const MomentContext = createContext<MomentContextValue | null>(null);
@@ -94,6 +95,7 @@ export function MomentProvider({ children }: { children: ReactNode }) {
   const [cloudUser, setCloudUser] = useState<CloudUser | null>(null);
   const [cloudStatus, setCloudStatus] = useState("Guest · local only");
   const syncing = useRef(false);
+  const skipNextPersist = useRef(true);
 
   useEffect(() => {
     const stored = loadMoments();
@@ -104,6 +106,11 @@ export function MomentProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
+    // Avoid stringify+setItem on first hydrate — doubles memory and can OOM Safari.
+    if (skipNextPersist.current) {
+      skipNextPersist.current = false;
+      return;
+    }
     saveMoments(moments);
   }, [moments, ready]);
 
@@ -235,7 +242,12 @@ export function MomentProvider({ children }: { children: ReactNode }) {
 
   const refreshLocation = useCallback(async () => {
     try {
-      const coords = await getCurrentPosition();
+      // Background polls stay low-accuracy; unlock screens can pass high-accuracy via watch.
+      const coords = await getCurrentPosition({
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 30000,
+      });
       setUserCoords(coords);
       setLocationError(null);
       return coords;
@@ -256,7 +268,7 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     void refreshLocation();
     const id = window.setInterval(() => {
       void refreshLocation();
-    }, 8000);
+    }, 20000);
     return () => window.clearInterval(id);
   }, [ready, view, refreshLocation]);
 
@@ -314,6 +326,7 @@ export function MomentProvider({ children }: { children: ReactNode }) {
       placeSubtitle: draft.placeSubtitle?.trim() || undefined,
       coords: draft.coords,
       note: draft.note.trim(),
+      songUrl: draft.songUrl?.trim() || undefined,
       media: draft.media,
       locationLocked: draft.locationLocked,
       timeLocked: draft.timeLocked,
@@ -384,6 +397,24 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     );
     setView("unlocked");
   }, []);
+
+  const renameMoment = useCallback(
+    (id: string, title: string) => {
+      const trimmed = title.trim();
+      if (!trimmed) return;
+      setMoments((prev) => {
+        const next = prev.map((m) =>
+          m.id === id ? { ...m, title: trimmed } : m,
+        );
+        if (cloudUser) {
+          const updated = next.find((m) => m.id === id);
+          if (updated) void upsertCloudMoments(cloudUser.id, [updated]);
+        }
+        return next;
+      });
+    },
+    [cloudUser],
+  );
 
   const saveMomentKeep = useCallback((id: string) => {
     setMoments((prev) =>
@@ -547,6 +578,9 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     openMoment,
     markUnlocked,
     saveMomentKeep,
+    saveReceivedMoment,
+    isShareSaved,
+    renameMoment,
     deleteMoment,
     dismissWelcome,
     seedDemo,
@@ -559,8 +593,6 @@ export function MomentProvider({ children }: { children: ReactNode }) {
     signInWithEmail,
     signOut,
     syncNow,
-    saveReceivedMoment,
-    isShareSaved,
   };
 
   return (

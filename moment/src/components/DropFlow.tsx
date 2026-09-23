@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { DeferredMap } from "@/components/DeferredMap";
 import { PlacePickerMap } from "@/components/Maps";
 import { useMoment } from "@/context/MomentProvider";
 import { useKeyboardInset, scrollFieldIntoView } from "@/hooks/useKeyboardInset";
@@ -157,11 +158,13 @@ export function DropPlace() {
         </p>
       )}
 
-      <PlacePickerMap
-        center={mapCenter}
-        className="mt-4 h-[300px]"
-        onCenterChange={onMapMoved}
-      />
+      <DeferredMap className="mt-4 h-[300px]">
+        <PlacePickerMap
+          center={mapCenter}
+          className="h-[300px]"
+          onCenterChange={onMapMoved}
+        />
+      </DeferredMap>
 
       <div className="mt-3 flex gap-2">
         <button type="button" className="btn-ghost flex-1 text-sm" onClick={() => void useMyLocation()}>
@@ -276,16 +279,21 @@ export function DropRecord() {
 
   async function onVideo(file: File | null) {
     if (!file) return;
-    // ~2.5MB data-URL ceiling keeps share links / localStorage workable
-    if (file.size > 1.8 * 1024 * 1024) {
+    // Data-URL + localStorage path — keep under ~3.5 MB raw to avoid Safari OOM.
+    // Longer clips need cloud/blob storage (not yet). Share links strip oversized video.
+    if (file.size > 3.5 * 1024 * 1024) {
       alert(
-        "Video is a bit large for this prototype (keep under ~1.8 MB). Trim it or use a short clip.",
+        "That video is a bit large for this device (keep under ~3.5 MB / about 8–12 seconds). Trim it in Photos, then try again.",
       );
       return;
     }
     setBusy(true);
     try {
       const dataUrl = await readFileAsDataUrl(file);
+      if (dataUrl.length > 4_500_000) {
+        alert("That video is too large to keep on this phone. Try a shorter clip.");
+        return;
+      }
       upsertMedia({
         kind: "video",
         payload: dataUrl,
@@ -420,11 +428,12 @@ export function DropRecord() {
                 src={video.payload}
                 controls
                 playsInline
+                preload="metadata"
                 className="h-44 w-full rounded-xl object-cover bg-black"
               />
             ) : (
               <p className="py-6 text-center text-sm text-muted">
-                Pick a clip from your camera roll (under ~1.8 MB), or record a new one.
+                Pick a short clip from your camera roll (under ~3.5 MB / ~8–12 sec), or record a new one.
               </p>
             )}
             <label className="btn-primary w-full cursor-pointer text-center">
@@ -541,6 +550,21 @@ export function DropLeave() {
       </button>
       <h1 className="font-display text-3xl tracking-wide">Leave it here</h1>
       <p className="mt-1 text-sm text-muted">Lock the Moment to this place.</p>
+
+      <label className="mt-5 block text-xs tracking-wide text-muted uppercase">
+        Song link (optional)
+        <input
+          className="field mt-2 normal-case tracking-normal"
+          type="url"
+          inputMode="url"
+          placeholder="https://open.spotify.com/track/…"
+          value={draft.songUrl ?? ""}
+          onChange={(e) => setDraft({ songUrl: e.target.value.trim() || undefined })}
+        />
+        <span className="mt-1.5 block text-[11px] normal-case tracking-normal text-muted/80">
+          Spotify, Apple Music, YouTube — opens when they unlock.
+        </span>
+      </label>
 
       <div className="mt-6 rounded-[22px] border border-white/8 bg-card p-4">
         <div className="flex items-start justify-between gap-3">

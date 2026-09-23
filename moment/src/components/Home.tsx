@@ -2,6 +2,7 @@
 
 import { BottomNav } from "@/components/BottomNav";
 import { MomentOverflowMenu } from "@/components/MomentOverflowMenu";
+import { MomentThumb } from "@/components/MomentThumb";
 import { useMoment } from "@/context/MomentProvider";
 import { distanceMeters, formatDistance } from "@/lib/geo";
 import { formatShortDate, relativeTime } from "@/lib/format";
@@ -67,34 +68,7 @@ export function Home() {
                     className="group flex min-w-0 flex-1 items-center gap-3 p-1 text-left"
                   >
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-surface">
-                      {m.media.find((x) => x.kind === "photo") ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={m.media.find((x) => x.kind === "photo")!.payload}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : m.media.find((x) => x.kind === "video") ? (
-                        <div className="relative h-full w-full bg-black">
-                          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                          <video
-                            src={m.media.find((x) => x.kind === "video")!.payload}
-                            className="h-full w-full object-cover opacity-80"
-                            muted
-                            playsInline
-                          />
-                          <span className="absolute inset-0 grid place-items-center text-accent text-xs">
-                            ▶
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="grid h-full w-full place-items-center text-accent/80">
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                            <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z" />
-                            <circle cx="12" cy="10" r="2.5" />
-                          </svg>
-                        </div>
-                      )}
+                      <MomentThumb media={m.media} />
                       <span
                         className={`absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full border ${
                           unlocked

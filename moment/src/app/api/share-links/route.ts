@@ -22,11 +22,19 @@ export async function POST(request: Request) {
       shareId?: string;
       accessKey?: string;
       sealed?: string;
+      senderEmail?: string;
+      recipientName?: string;
+      placeName?: string;
+      title?: string;
     };
 
     const shareId = body.shareId?.trim() ?? "";
     const accessKey = body.accessKey?.trim() ?? "";
     const sealed = body.sealed?.trim() ?? "";
+    const senderEmail = body.senderEmail?.trim().toLowerCase() ?? "";
+    const recipientName = body.recipientName?.trim() ?? "";
+    const placeName = body.placeName?.trim() ?? "";
+    const title = body.title?.trim() ?? "";
 
     if (!shareId || !accessKey || !sealed) {
       return NextResponse.json(
@@ -54,17 +62,35 @@ export async function POST(request: Request) {
     }
 
     const admin = createAdminClient();
-    const { error } = await admin.from("share_links").upsert(
-      {
-        id: shareId,
-        access_key: accessKey,
-        sealed,
-        expires_at: new Date(
-          Date.now() + 90 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-      },
-      { onConflict: "id" },
-    );
+    const baseRow: Record<string, string> = {
+      id: shareId,
+      access_key: accessKey,
+      sealed,
+      expires_at: new Date(
+        Date.now() + 90 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+    };
+    const row: Record<string, string> = { ...baseRow };
+    if (senderEmail) row.sender_email = senderEmail;
+    if (recipientName) row.recipient_name = recipientName;
+    if (placeName) row.place_name = placeName;
+    if (title) row.title = title;
+
+    let { error } = await admin.from("share_links").upsert(row, {
+      onConflict: "id",
+    });
+
+    // Older DBs without receipt columns — still create the short link
+    if (
+      error &&
+      /sender_email|recipient_name|place_name|title|opened_at|column/i.test(
+        error.message || "",
+      )
+    ) {
+      ({ error } = await admin.from("share_links").upsert(baseRow, {
+        onConflict: "id",
+      }));
+    }
 
     if (error) {
       const missing =
@@ -74,7 +100,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: missing
-            ? "share_links table missing — run the latest supabase/schema.sql snippet."
+            ? "share_links table missing — run moment/supabase/share_links.sql."
             : error.message,
         },
         { status: missing ? 503 : 500 },

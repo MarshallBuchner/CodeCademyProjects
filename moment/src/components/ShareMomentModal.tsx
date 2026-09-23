@@ -120,6 +120,10 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
         shareId: capsule.shareId,
         accessKey: capsule.accessKey,
         sealed,
+        senderEmail: cloudUser?.email,
+        recipientName: capsule.recipientName,
+        placeName: moment.placeName,
+        title: moment.title,
       });
       if (!("path" in published)) {
         const why =
@@ -309,6 +313,9 @@ export function ShareMomentModal({ moment, open, onClose }: Props) {
             </p>
             <p className="text-xs text-muted">
               Short link — works when pasted into Safari. In Messenger, prefer Open in Safari if paste looks blank.
+              {cloudUser?.email
+                ? " You’ll get an email when they unlock it (like a read receipt), and Profile will show Opened."
+                : " Sign in before sharing to get an email when they unlock it — Profile still shows Opened either way."}
             </p>
             <div className="max-h-28 overflow-auto break-all rounded-2xl border border-white/10 bg-black/40 p-3 text-[11px] text-muted">
               {link}

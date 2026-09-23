@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { DeferredMap } from "@/components/DeferredMap";
 import { JourneyMap } from "@/components/Maps";
 import { MomentOverflowMenu } from "@/components/MomentOverflowMenu";
 import { ShareMomentModal } from "@/components/ShareMomentModal";
@@ -18,6 +19,7 @@ export function LockedView() {
     locationError,
     userCoords,
     deleteMoment,
+    renameMoment,
   } = useMoment();
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -47,6 +49,7 @@ export function LockedView() {
         <MomentOverflowMenu
           momentTitle={activeMoment.title}
           onDelete={() => deleteMoment(activeMoment.id)}
+          onRename={(title) => renameMoment(activeMoment.id, title)}
         />
       </div>
 
@@ -69,12 +72,14 @@ export function LockedView() {
           : ""}
       </p>
 
-      <JourneyMap
-        user={userCoords}
-        target={activeMoment.coords}
-        className="mt-5 h-[300px]"
-        unlocked={false}
-      />
+      <DeferredMap className="mt-5 h-[300px]">
+        <JourneyMap
+          user={userCoords}
+          target={activeMoment.coords}
+          className="h-[300px]"
+          unlocked={false}
+        />
+      </DeferredMap>
 
       <div className="mt-6 text-center">
         <p className="font-display text-4xl tracking-wide text-accent glow-text">
@@ -138,6 +143,7 @@ export function UnlockedView() {
     activeMoment,
     setView,
     saveMomentKeep,
+    renameMoment,
     continueTradition,
     deleteMoment,
   } = useMoment();
@@ -220,12 +226,20 @@ export function UnlockedView() {
         </p>
         <h2 className="mt-2 font-medium text-foreground">{activeMoment.title}</h2>
         <p className="mt-1 text-xs text-muted">{activeMoment.placeName}</p>
-        {activeMoment.note && (
-          <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-            {activeMoment.note}
-          </p>
+        {activeMoment.songUrl && (
+          <a
+            href={activeMoment.songUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 flex items-center gap-3 rounded-2xl border border-accent/30 bg-accent/10 px-3 py-3 text-sm text-accent"
+          >
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-accent text-black">♫</span>
+            <span className="min-w-0">
+              <span className="block font-medium text-foreground">Play the song</span>
+              <span className="block truncate text-xs text-muted">Opens Spotify / Music / YouTube</span>
+            </span>
+          </a>
         )}
-
         {voice && (
           <div className="mt-5 flex items-center gap-3 rounded-2xl border border-white/8 bg-black/30 px-3 py-3">
             <button
@@ -258,6 +272,12 @@ export function UnlockedView() {
           </div>
         )}
 
+        {activeMoment.note && (
+          <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+            {activeMoment.note}
+          </p>
+        )}
+
         {photo && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -273,6 +293,7 @@ export function UnlockedView() {
             src={video.payload}
             controls
             playsInline
+            preload="none"
             className="mt-4 h-44 w-full rounded-2xl object-cover bg-black"
           />
         )}

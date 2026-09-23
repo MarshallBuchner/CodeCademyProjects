@@ -20,6 +20,8 @@ export type MomentRecord = {
   placeSubtitle?: string;
   coords: Coords;
   note: string;
+  /** Optional Spotify / music link */
+  songUrl?: string;
   media: MomentMedia[];
   locationLocked: boolean;
   timeLocked: boolean;
@@ -29,7 +31,7 @@ export type MomentRecord = {
   createdAt: string;
   unlockedAt?: string;
   saved: boolean;
-  /** Set when this Moment was received from someone else */
+  /** Sender name when this Moment was received from someone else */
   receivedFrom?: string;
   /** Share id (link or account share) used for idempotent save */
   sourceShareId?: string;
@@ -41,6 +43,7 @@ export type DraftMoment = {
   placeSubtitle?: string;
   coords: Coords | null;
   note: string;
+  songUrl?: string;
   media: MomentMedia[];
   locationLocked: boolean;
   timeLocked: boolean;
@@ -69,6 +72,7 @@ export const emptyDraft = (): DraftMoment => ({
   placeSubtitle: "",
   coords: null,
   note: "",
+  songUrl: undefined,
   media: [],
   locationLocked: true,
   timeLocked: false,

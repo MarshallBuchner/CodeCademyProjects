@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useMoment } from "@/context/MomentProvider";
+import { MapSafeBoundary } from "@/components/MapSafeBoundary";
 import { JourneyMap } from "@/components/Maps";
 import { Logo, Wordmark } from "@/components/Logo";
 import { OpenInBrowserBanner } from "@/components/OpenInBrowserBanner";
@@ -19,9 +19,14 @@ import {
   fetchSealedShareLink,
   getInboxCapsule,
   rememberInbox,
+  reportShareOpened,
   unsealCapsule,
   type SharedCapsule,
 } from "@/lib/share";
+import {
+  findMomentByShareId,
+  upsertReceivedMoment,
+} from "@/lib/storage";
 import { UNLOCK_RADIUS_METERS } from "@/lib/types";
 
 type Phase = "loading" | "pin" | "locked" | "unlocked" | "invalid";
@@ -34,10 +39,11 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
   const [userCoords, setUserCoords] = useState<CoordsWithAccuracy | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const inAppBrowser = useMemo(() => isInAppBrowser(), []);
-  const { saveReceivedMoment, isShareSaved } = useMoment();
+  const [showMap, setShowMap] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const openedReportedRef = useRef(false);
+  const inAppBrowser = useMemo(() => isInAppBrowser(), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,23 +58,35 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         const sealedHash = new URLSearchParams(hash).get("d");
 
         let found: SharedCapsule | null = null;
+
+        // Huge #d= payloads can OOM Safari before React paints
+        if (sealedHash && sealedHash.length > 2_000_000) {
+          if (!cancelled) setPhase("invalid");
+          return;
+        }
         if (sealedHash) {
           found = unsealCapsule(sealedHash);
+          try {
+            window.history.replaceState(
+              null,
+              "",
+              `${window.location.pathname}${window.location.search}`,
+            );
+          } catch {
+            /* ignore */
+          }
         }
-        // Messenger / copy-paste often strips #hash — short links recover via API
+
         if (!found && key) {
           const ids = Array.from(new Set([shareId, decodeURIComponent(shareId)]));
           for (const id of ids) {
             const sealed = await fetchSealedShareLink(id, key);
-            if (sealed) {
-              found = unsealCapsule(sealed);
-              if (found) break;
-            }
+            if (!sealed || sealed.length > 2_000_000) continue;
+            found = unsealCapsule(sealed);
+            if (found) break;
           }
         }
-        if (!found) {
-          found = getInboxCapsule(shareId);
-        }
+        if (!found) found = getInboxCapsule(shareId);
 
         if (cancelled) return;
 
@@ -76,7 +94,6 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
           setPhase("invalid");
           return;
         }
-        // Allow hash-only opens (no ?k=) and normal short links
         if (key && found.accessKey !== key) {
           setPhase("invalid");
           return;
@@ -85,10 +102,16 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         try {
           rememberInbox(found);
         } catch {
-          // Safari private / quota can throw — still show the Moment
+          /* Safari private / quota */
         }
         setCapsule(found);
         setPhase(found.passcode ? "pin" : "locked");
+
+        try {
+          if (findMomentByShareId(found.shareId)) setSaveState("saved");
+        } catch {
+          /* ignore */
+        }
       } catch {
         if (!cancelled) setPhase("invalid");
       }
@@ -100,10 +123,19 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
     };
   }, [shareId]);
 
-  // Escape hatch: never leave users on a blank spinner
   useEffect(() => {
     if (phase !== "loading") return;
     const id = window.setTimeout(() => setPhase("invalid"), 15_000);
+    return () => window.clearTimeout(id);
+  }, [phase]);
+
+  // Defer map — Leaflet + GPS together can crash low-memory iPhones
+  useEffect(() => {
+    if (phase !== "locked") {
+      setShowMap(false);
+      return;
+    }
+    const id = window.setTimeout(() => setShowMap(true), 350);
     return () => window.clearTimeout(id);
   }, [phase]);
 
@@ -121,6 +153,7 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
             : "Need location to unlock this Moment",
         );
       },
+      { enableHighAccuracy: false, maximumAge: 5000, timeout: 20000 },
     );
   }, [phase, inAppBrowser]);
 
@@ -148,6 +181,13 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
     if (phase === "locked" && canUnlock) setPhase("unlocked");
   }, [phase, canUnlock]);
 
+  // Read receipt: notify sender once when recipient unlocks (arrives)
+  useEffect(() => {
+    if (phase !== "unlocked" || !capsule || openedReportedRef.current) return;
+    openedReportedRef.current = true;
+    void reportShareOpened(capsule.shareId, capsule.accessKey);
+  }, [phase, capsule]);
+
   function submitPin() {
     if (!capsule?.passcode) {
       setPhase("locked");
@@ -161,17 +201,11 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
     setPhase("locked");
   }
 
-
-  useEffect(() => {
-    if (!capsule) return;
-    if (isShareSaved(capsule.shareId)) setSaveState("saved");
-  }, [capsule, isShareSaved]);
-
   function saveToMyMoments(unlocked: boolean) {
     if (!capsule) return;
     try {
       const record = capsuleToLocalMoment(capsule, { unlocked });
-      saveReceivedMoment(record);
+      upsertReceivedMoment(record);
       setSaveState("saved");
     } catch {
       setSaveState("error");
@@ -197,8 +231,8 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         <p className="mt-2 text-sm text-muted">
           This private Moment link is missing its key, was altered, or isn&apos;t
           for this device. If you copied it from Messenger, try{" "}
-          <span className="text-foreground/90">Open in Safari</span> from the
-          in-app browser, or ask them to resend with a fresh short link.
+          <span className="text-foreground/90">Open in Safari</span>, or ask them
+          to resend with a fresh short link.
         </p>
         <Link href="/" className="btn-primary mt-8 w-full">
           Open MOMENT
@@ -247,17 +281,30 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
           For {capsule.recipientName}
         </h1>
         <p className="mt-2 text-sm text-muted">
-          {capsule.senderName} left this at {capsule.placeName}. It opens only when you arrive.
+          {capsule.senderName} left this at {capsule.placeName}. It opens only when you
+          arrive.
         </p>
-        <OpenInBrowserBanner
-          force={Boolean(locationError)}
-          className="mt-4"
-        />
-        <JourneyMap
-          user={userCoords}
-          target={capsule.coords}
-          className="mt-5 h-[280px]"
-        />
+        <OpenInBrowserBanner force={Boolean(locationError)} className="mt-4" />
+        <MapSafeBoundary
+          fallback={
+            <div className="mt-5 grid h-[280px] place-items-center rounded-[28px] border border-white/8 bg-card px-4 text-center text-sm text-muted">
+              Map couldn’t load on this device — keep walking toward{" "}
+              <span className="text-foreground/90">{capsule.placeName}</span>.
+            </div>
+          }
+        >
+          {showMap ? (
+            <JourneyMap
+              user={userCoords}
+              target={capsule.coords}
+              className="mt-5 h-[280px]"
+            />
+          ) : (
+            <div className="mt-5 grid h-[280px] place-items-center rounded-[28px] border border-white/8 bg-[#0a0b10] text-sm text-muted">
+              Loading map…
+            </div>
+          )}
+        </MapSafeBoundary>
         <div className="mt-6 text-center">
           <p className="font-display text-4xl tracking-wide text-accent glow-text">
             {distance != null ? `${formatDistance(distance)} away` : "Locating…"}
@@ -274,12 +321,9 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
             <p className="text-xs text-muted">{capsule.placeSubtitle}</p>
           )}
         </div>
-        <p className="mt-auto pt-6 text-center text-xs text-muted">
-          This Moment unlocks when you arrive — location required.
-        </p>
         <button
           type="button"
-          className="btn-ghost mt-3 w-full"
+          className="btn-ghost mt-4 w-full"
           onClick={() => saveToMyMoments(false)}
           disabled={saveState === "saved"}
         >
@@ -292,11 +336,13 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
             Couldn&apos;t save on this device. Try again.
           </p>
         )}
+        <p className="mt-auto pt-6 text-center text-xs text-muted">
+          This Moment unlocks when you arrive — location required.
+        </p>
       </main>
     );
   }
 
-  // unlocked
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-8 pt-6">
       <p className="text-xs tracking-[0.22em] text-accent uppercase">You&apos;ve arrived</p>
@@ -314,16 +360,13 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
       <article className="mt-6 rounded-[24px] border border-accent/35 bg-card/90 p-5 shadow-[0_0_40px_rgba(255,138,42,0.12)]">
         <h2 className="font-medium">{moment.title}</h2>
         <p className="mt-1 text-xs text-muted">{moment.placeName}</p>
-        {moment.note && (
-          <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-            {moment.note}
-          </p>
-        )}
+
         {voice && (
           <div className="mt-5 flex items-center gap-3 rounded-2xl border border-white/8 bg-black/30 px-3 py-3">
             <button
               type="button"
               className="grid h-10 w-10 place-items-center rounded-full bg-accent text-black"
+              aria-label={playing ? "Pause voice message" : "Play voice message"}
               onClick={() => {
                 if (!audioRef.current) return;
                 if (playing) {
@@ -337,29 +380,61 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
             >
               {playing ? "❚❚" : "▶"}
             </button>
-            <div className="waveform flex h-8 flex-1 items-end gap-0.5">
-              {Array.from({ length: 24 }).map((_, i) => (
-                <span
-                  key={i}
-                  className="w-1 rounded-full bg-accent/80"
-                  style={{ height: `${8 + ((i * 13) % 20)}px` }}
-                />
-              ))}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-foreground/90">Voice message</p>
+              <div className="waveform mt-1.5 flex h-6 items-end gap-0.5">
+                {Array.from({ length: 24 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className="w-1 rounded-full bg-accent/80"
+                    style={{ height: `${8 + ((i * 13) % 20)}px` }}
+                  />
+                ))}
+              </div>
             </div>
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <audio
               ref={audioRef}
               src={voice.payload}
+              preload="metadata"
               onEnded={() => setPlaying(false)}
               className="hidden"
             />
           </div>
         )}
+
+        {moment.note && (
+          <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+            {moment.note}
+          </p>
+        )}
+
+        {moment.songUrl && (
+          <a
+            href={moment.songUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 flex items-center gap-3 rounded-2xl border border-accent/30 bg-accent/10 px-3 py-3 text-sm text-accent"
+          >
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-accent text-black">
+              ♫
+            </span>
+            <span className="min-w-0">
+              <span className="block font-medium text-foreground">Play the song</span>
+              <span className="block truncate text-xs text-muted">
+                Opens Spotify / Music / YouTube
+              </span>
+            </span>
+          </a>
+        )}
+
         {photo && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={photo.payload}
             alt=""
+            loading="lazy"
+            decoding="async"
             className="mt-4 h-36 w-full rounded-2xl object-cover"
           />
         )}
@@ -369,6 +444,7 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
             src={video.payload}
             controls
             playsInline
+            preload="metadata"
             className="mt-4 h-44 w-full rounded-2xl object-cover bg-black"
           />
         )}
