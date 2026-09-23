@@ -93,18 +93,22 @@ export function Home() {
                       <p className="mt-0.5 truncate text-sm text-muted">{m.placeName}</p>
                       <p className="mt-1 text-xs text-muted/80">
                         {m.receivedFrom
-                          ? m.unlockedAt
-                            ? `From ${m.receivedFrom} · unlocked`
-                            : `From ${m.receivedFrom}`
+                          ? unlocked
+                            ? `From ${m.receivedFrom} · unlocked ${relativeTime(m.unlockedAt!)}`
+                            : `From ${m.receivedFrom} · ${
+                                dist != null
+                                  ? `${formatDistance(dist)} away`
+                                  : "location locked"
+                              }`
                           : m.annualTradition
-                          ? m.unlockedAt
-                            ? `Tradition opened · ${relativeTime(m.unlockedAt)}`
-                            : `Yearly tradition · opens ${m.unlockAt ? formatShortDate(m.unlockAt) : "next year"}`
-                          : unlocked
-                            ? `Unlocked · ${relativeTime(m.unlockedAt!)}`
-                            : dist != null
-                              ? `${formatDistance(dist)} away`
-                              : "Location locked"}
+                            ? m.unlockedAt
+                              ? `Tradition opened · ${relativeTime(m.unlockedAt)}`
+                              : `Yearly tradition · opens ${m.unlockAt ? formatShortDate(m.unlockAt) : "next year"}`
+                            : unlocked
+                              ? `Unlocked · ${relativeTime(m.unlockedAt!)}`
+                              : dist != null
+                                ? `${formatDistance(dist)} away`
+                                : "Location locked"}
                       </p>
                     </div>
                   </button>

@@ -23,7 +23,10 @@ import {
   unsealCapsule,
   type SharedCapsule,
 } from "@/lib/share";
-import { loadMoments, saveMoments } from "@/lib/storage";
+import {
+  findMomentByShareId,
+  upsertReceivedMoment,
+} from "@/lib/storage";
 import { UNLOCK_RADIUS_METERS } from "@/lib/types";
 
 type Phase = "loading" | "pin" | "locked" | "unlocked" | "invalid";
@@ -105,13 +108,7 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         setPhase(found.passcode ? "pin" : "locked");
 
         try {
-          const existing = loadMoments().some(
-            (m) =>
-              m.sourceShareId === found!.shareId ||
-              m.id === `received_${found!.shareId}` ||
-              m.id === `shared_${found!.shareId}`,
-          );
-          if (existing) setSaveState("saved");
+          if (findMomentByShareId(found.shareId)) setSaveState("saved");
         } catch {
           /* ignore */
         }
@@ -204,22 +201,11 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
     setPhase("locked");
   }
 
-  function saveToMyMoments() {
+  function saveToMyMoments(unlocked: boolean) {
     if (!capsule) return;
     try {
-      const record = capsuleToLocalMoment(capsule, {
-        unlocked: phase === "unlocked",
-      });
-      const prev = loadMoments();
-      const next = [
-        record,
-        ...prev.filter(
-          (m) =>
-            m.id !== record.id &&
-            !(record.sourceShareId && m.sourceShareId === record.sourceShareId),
-        ),
-      ];
-      saveMoments(next);
+      const record = capsuleToLocalMoment(capsule, { unlocked });
+      upsertReceivedMoment(record);
       setSaveState("saved");
     } catch {
       setSaveState("error");
@@ -338,7 +324,7 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         <button
           type="button"
           className="btn-ghost mt-4 w-full"
-          onClick={saveToMyMoments}
+          onClick={() => saveToMyMoments(false)}
           disabled={saveState === "saved"}
         >
           {saveState === "saved"
@@ -468,7 +454,7 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
         <button
           type="button"
           className="btn-primary w-full"
-          onClick={saveToMyMoments}
+          onClick={() => saveToMyMoments(true)}
           disabled={saveState === "saved"}
         >
           {saveState === "saved" ? "Saved to My Moments" : "Save to My Moments"}
@@ -482,8 +468,8 @@ export function SharedMomentClient({ shareId }: { shareId: string }) {
           {saveState === "saved" ? "Open in MOMENT" : "Open MOMENT app"}
         </Link>
         <p className="text-center text-xs text-muted">
-          Saving keeps this Moment in Your Moments so you don&apos;t need the chat
-          link again.
+          Saving keeps this Moment in Your Moments so you don&apos;t need the
+          chat link again.
         </p>
       </div>
     </main>
