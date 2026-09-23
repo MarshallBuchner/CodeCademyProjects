@@ -132,12 +132,20 @@ export function ProfileView() {
     };
   }, []);
 
+  useEffect(() => {
+    if (cloudUser) {
+      setAuthMsg(`Signed in as ${cloudUser.email}. Sync keeps Moments across devices.`);
+    }
+  }, [cloudUser]);
+
   async function onSignIn() {
     setBusy(true);
     setAuthMsg(null);
     try {
       await signInWithEmail(email);
-      setAuthMsg("Check your email for a magic link.");
+      setAuthMsg(
+        "Check your email for a magic link. On iPhone, open the link with Safari (long-press → Open in Safari) so sign-in can finish.",
+      );
     } catch (e) {
       setAuthMsg(e instanceof Error ? e.message : "Sign-in failed");
     } finally {

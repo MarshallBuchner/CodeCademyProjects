@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { DropLeave, DropPlace, DropRecord } from "@/components/DropFlow";
 import { Home } from "@/components/Home";
 import { LockedView, UnlockedView } from "@/components/LockedUnlocked";
@@ -9,7 +10,25 @@ import { Welcome } from "@/components/Welcome";
 import { useMoment } from "@/context/MomentProvider";
 
 export function AppShell() {
-  const { ready, view } = useMoment();
+  const { ready, view, setView } = useMoment();
+
+  // Magic-link callback lands on /?signedIn=1 or /?view=profile
+  useEffect(() => {
+    if (!ready || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const wantsProfile =
+      params.get("view") === "profile" ||
+      params.get("signedIn") === "1" ||
+      params.has("authError");
+    if (!wantsProfile) return;
+    setView("profile");
+    // Clean the URL so refresh doesn't keep re-triggering
+    const url = new URL(window.location.href);
+    url.searchParams.delete("view");
+    url.searchParams.delete("signedIn");
+    url.searchParams.delete("authError");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }, [ready, setView]);
 
   if (!ready) {
     return (
